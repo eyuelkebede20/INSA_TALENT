@@ -15,6 +15,7 @@ export const { signIn, signOut, useSession } = authClient;
 export async function fetchApi(endpoint: string, options?: RequestInit) {
     const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
             ...options?.headers,

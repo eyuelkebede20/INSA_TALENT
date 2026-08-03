@@ -9,7 +9,55 @@ function Leaderboards() {
   return <div className="p-10"><h1 className="text-4xl font-bold mb-4 text-white">Leaderboards</h1><div className="glass-card rounded-xl p-8 min-h-[400px]">Rankings will appear here.</div></div>;
 }
 function AdminDashboard() {
-  return <div className="p-10"><h1 className="text-4xl font-bold mb-4 text-red-400">Superadmin</h1><div className="glass-card rounded-xl p-8 min-h-[400px]">Admin controls will appear here.</div></div>;
+  const [password, setPassword] = useState("");
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [status, setStatus] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await fetchApi("/admin/login", {
+        method: "POST",
+        body: JSON.stringify({ password })
+      });
+      setLoggedIn(true);
+    } catch (err: any) {
+      setStatus("Invalid admin password");
+    }
+  };
+
+  if (!loggedIn) {
+    return (
+      <div className="p-10 max-w-md mx-auto mt-20">
+        <div className="glass-card rounded-2xl p-10 text-center">
+          <h1 className="text-3xl font-bold mb-6 text-red-400">Superadmin Access</h1>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input 
+              type="password" 
+              required 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all" 
+              placeholder="Enter Admin Password" 
+            />
+            <button type="submit" className="w-full bg-red-600/80 text-white font-bold py-3 rounded-lg hover:bg-red-600 transition-colors">
+              Login
+            </button>
+          </form>
+          {status && <p className="mt-4 text-center text-sm text-pink-400">{status}</p>}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-10 max-w-6xl mx-auto">
+      <h1 className="text-4xl font-bold mb-4 text-red-400">Admin Controls</h1>
+      <div className="glass-card rounded-xl p-8 min-h-[400px]">
+        <p className="text-gray-300">You are logged in! Team re-assignment and event controls will go here.</p>
+      </div>
+    </div>
+  );
 }
 function StudentFlow() {
   const { data: session, isPending } = useSession();
