@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "../db";
 import { players, teams, eventSettings } from "../db/schema";
 import { sql, eq } from "drizzle-orm";
-import { deletePlayerAndBackfill } from "../services/admin";
+import { deletePlayerAndBackfill, cascadeBackfill, cleanupEmptyTeams } from "../services/admin";
 import { assignPlayerToTeam } from "../services/eos";
 import jwt from "jsonwebtoken";
 
@@ -97,24 +97,26 @@ adminRouter.post("/settings", async (req, res) => {
                 await tx.update(eventSettings).set({ advancedThreshold: advanced_threshold, midThreshold: mid_threshold });
             }
 
-            const unlockedPlayers = await tx.execute(sql`
+            const allPlayers = await tx.execute(sql`
                 SELECT p.id, p.current_rating, p.tier, p.team_id 
                 FROM players p
-                JOIN teams t ON p.team_id = t.id
-                WHERE t.is_locked = false
                 ORDER BY p.created_at ASC
             `);
 
-            for (const p of unlockedPlayers) {
+            for (const p of allPlayers) {
                 let newTier: "ADVANCED" | "MID" | "BEGINNER" = "BEGINNER";
                 if (p.current_rating >= advanced_threshold) newTier = "ADVANCED";
                 else if (p.current_rating >= mid_threshold) newTier = "MID";
 
                 if (newTier !== p.tier) {
                     await tx.update(players).set({ teamId: null, tier: newTier }).where(eq(players.id, p.id));
+                    if (p.team_id) {
+                        await cascadeBackfill(p.team_id, p.tier, tx);
+                    }
                     await assignPlayerToTeam(p.id, newTier, tx);
                 }
             }
+            await cleanupEmptyTeams(tx);
         });
         
         res.json({ success: true });

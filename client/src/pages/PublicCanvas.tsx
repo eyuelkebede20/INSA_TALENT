@@ -73,7 +73,7 @@ export default function PublicCanvas() {
         </div>
       ) : (
         <div className="flex-1 w-full relative bg-base-200" style={{ backgroundImage: 'radial-gradient(#base-300 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
-          <TransformWrapper initialScale={1} minScale={0.1} maxScale={4} centerOnInit limitToBounds={false}>
+          <TransformWrapper initialScale={1} minScale={0.1} maxScale={4} centerOnInit limitToBounds={false} centerZoomedOut={false}>
             {({ zoomIn, zoomOut, resetTransform }) => (
               <>
                 <SearchZoomer filteredTeams={filteredTeams} />
@@ -82,7 +82,7 @@ export default function PublicCanvas() {
                   <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomOut()}>-</button>
                   <button className="btn btn-sm btn-square btn-ghost" onClick={() => resetTransform()}>⟲</button>
                 </div>
-                <TransformComponent wrapperClass="!w-full !h-full cursor-grab active:cursor-grabbing" contentClass="p-[500px]">
+                <TransformComponent wrapperClass="!w-full !h-full !absolute !inset-0 cursor-grab active:cursor-grabbing" contentClass="p-[500px] w-full h-full flex items-center justify-center">
                   <div className="flex flex-wrap gap-8 justify-center min-w-[3000px]">
                     {filteredTeams.map((t: any) => (
                       <div id={`team-card-${t.id}`} key={t.id} className={`card bg-base-100 shadow-2xl border-t-8 w-[300px] md:w-[350px] shrink-0 transition-all ${t.is_locked ? 'border-t-success shadow-[0_0_30px_rgba(0,255,100,0.3)] hover:shadow-[0_0_40px_rgba(0,255,100,0.5)]' : 'border-t-primary hover:shadow-[0_0_20px_rgba(var(--primary),0.2)]'}`}>
