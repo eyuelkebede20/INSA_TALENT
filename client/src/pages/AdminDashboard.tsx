@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchApi } from '../lib/api';
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [teams, setTeams] = useState<any[]>([]);
   const [settings, setSettings] = useState({ advanced: 1200, mid: 600 });
   const [status, setStatus] = useState("");
@@ -33,10 +33,16 @@ export default function AdminDashboard() {
     fetchApi('/admin/teams').then(setTeams);
   };
 
+  const handleLogout = async () => {
+    await fetchApi('/admin/logout', { method: 'POST' });
+    onLogout();
+  };
+
   return (
     <div className="space-y-12">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-4xl font-bold text-error">Admin Controls</h1>
+        <button onClick={handleLogout} className="btn btn-outline btn-error btn-sm">Logout</button>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -44,16 +50,24 @@ export default function AdminDashboard() {
           <div className="card bg-base-100 shadow-xl border border-base-300 sticky top-24">
             <div className="card-body">
               <h2 className="card-title text-xl font-bold mb-4">Event Settings</h2>
-              <form onSubmit={updateSettings} className="space-y-4">
+              <form onSubmit={updateSettings} className="space-y-6">
                 <div className="form-control">
-                  <label className="label"><span className="label-text">Advanced Threshold</span></label>
-                  <input type="number" value={settings.advanced} onChange={e => setSettings({...settings, advanced: +e.target.value})} className="input input-bordered w-full" />
+                  <label className="label pb-1"><span className="label-text">Advanced Threshold: <span className="font-bold text-secondary ml-1">{settings.advanced}</span></span></label>
+                  <input type="range" min="800" max="3000" step="50" value={settings.advanced} onChange={e => setSettings({...settings, advanced: +e.target.value})} className="range range-secondary range-sm" />
+                  <div className="w-full flex justify-between text-xs px-2 mt-1 opacity-50">
+                    <span>800</span>
+                    <span>3000</span>
+                  </div>
                 </div>
                 <div className="form-control">
-                  <label className="label"><span className="label-text">Mid Threshold</span></label>
-                  <input type="number" value={settings.mid} onChange={e => setSettings({...settings, mid: +e.target.value})} className="input input-bordered w-full" />
+                  <label className="label pb-1"><span className="label-text">Mid Threshold: <span className="font-bold text-accent ml-1">{settings.mid}</span></span></label>
+                  <input type="range" min="400" max="2500" step="50" value={settings.mid} onChange={e => setSettings({...settings, mid: +e.target.value})} className="range range-accent range-sm" />
+                  <div className="w-full flex justify-between text-xs px-2 mt-1 opacity-50">
+                    <span>400</span>
+                    <span>2500</span>
+                  </div>
                 </div>
-                <button type="submit" className="btn btn-error w-full mt-4">Update & Recalculate</button>
+                <button type="submit" className="btn btn-error w-full mt-2">Update & Recalculate</button>
               </form>
               {status && <p className="text-center text-sm font-bold text-success mt-4">{status}</p>}
             </div>

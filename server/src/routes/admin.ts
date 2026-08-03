@@ -19,6 +19,15 @@ adminRouter.post("/login", (req, res) => {
     }
 });
 
+adminRouter.post("/logout", (req, res) => {
+    res.clearCookie("admin_token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none"
+    });
+    res.json({ success: true });
+});
+
 adminRouter.use((req, res, next) => {
     // Basic auth check
     const authHeader = req.headers.authorization;

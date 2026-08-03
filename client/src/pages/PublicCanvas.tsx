@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchApi } from '../lib/api';
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 export default function PublicCanvas() {
   const [teams, setTeams] = useState<any[]>([]);
@@ -59,47 +60,62 @@ export default function PublicCanvas() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredTeams.map((t: any) => (
-            <div key={t.id} className={`card bg-base-100 shadow-xl border-t-4 transition-transform hover:-translate-y-1 ${t.is_locked ? 'border-t-success' : 'border-t-primary'}`}>
-              <div className="card-body p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="card-title text-2xl font-bold">Team {t.team_number}</h3>
-                  {t.is_locked ? (
-                    <div className="badge badge-success badge-outline font-bold uppercase text-xs p-3">Locked (Ready)</div>
-                  ) : (
-                    <div className="badge badge-primary badge-outline font-bold uppercase text-xs p-3">Recruiting</div>
-                  )}
+        <div className="relative w-full h-[75vh] border border-base-300 rounded-2xl overflow-hidden bg-base-200/20 shadow-inner">
+          <TransformWrapper initialScale={1} minScale={0.3} maxScale={3} centerOnInit limitToBounds={false}>
+            {({ zoomIn, zoomOut, resetTransform }) => (
+              <>
+                <div className="absolute top-4 right-4 z-10 flex flex-col gap-2 bg-base-100 p-2 rounded-xl shadow-lg border border-base-300">
+                  <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomIn()}>+</button>
+                  <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomOut()}>-</button>
+                  <button className="btn btn-sm btn-square btn-ghost" onClick={() => resetTransform()}>⟲</button>
                 </div>
-                
-                <div className="space-y-3">
-                  {t.members?.filter((m: any) => m).map((m: any, i: number) => (
-                    <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-base-200 border border-base-300">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full shadow-sm ${m.tier === 'ADVANCED' ? 'bg-secondary' : m.tier === 'MID' ? 'bg-accent' : 'bg-primary'}`}></div>
-                        <div>
-                          <p className="text-sm font-bold">{m.name}</p>
-                          <p className="text-xs text-base-content/60">{m.tier}</p>
+                <TransformComponent wrapperClass="!w-full !h-full cursor-grab active:cursor-grabbing" contentClass="p-20">
+                  <div className="flex flex-wrap gap-10 justify-center w-[150vw] md:w-[100vw]">
+                    {filteredTeams.map((t: any) => (
+                      <div key={t.id} className={`card bg-base-100 shadow-2xl border-t-8 w-[350px] shrink-0 ${t.is_locked ? 'border-t-success' : 'border-t-primary'}`}>
+                        <div className="card-body p-6">
+                          <div className="flex justify-between items-center mb-6">
+                            <h3 className="card-title text-2xl font-bold">Team {t.team_number}</h3>
+                            {t.is_locked ? (
+                              <div className="badge badge-success badge-outline font-bold uppercase text-xs p-3">Locked</div>
+                            ) : (
+                              <div className="badge badge-primary badge-outline font-bold uppercase text-xs p-3">Recruiting</div>
+                            )}
+                          </div>
+                          
+                          <div className="space-y-3">
+                            {t.members?.filter((m: any) => m).map((m: any, i: number) => (
+                              <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-base-200 border border-base-300">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-3 h-3 rounded-full shadow-sm ${m.tier === 'ADVANCED' ? 'bg-secondary' : m.tier === 'MID' ? 'bg-accent' : 'bg-primary'}`}></div>
+                                  <div>
+                                    <p className="text-sm font-bold">{m.name}</p>
+                                    <p className="text-xs text-base-content/60">{m.tier}</p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-sm font-bold text-primary">{m.rating}</p>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            {!t.members || t.members.filter((m: any) => m).length === 0 ? (
+                              <div className="text-center py-6 text-base-content/40 text-sm font-medium">No members yet.</div>
+                            ) : null}
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-primary">{m.rating}</p>
+                    ))}
+                    {filteredTeams.length === 0 && (
+                      <div className="w-full text-center py-20 text-base-content/50 text-xl font-bold bg-base-100/50 rounded-2xl backdrop-blur-sm">
+                        No teams or players match your search.
                       </div>
-                    </div>
-                  ))}
-                  
-                  {!t.members || t.members.filter((m: any) => m).length === 0 ? (
-                    <div className="text-center py-6 text-base-content/40 text-sm font-medium">No members yet.</div>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-          ))}
-          {filteredTeams.length === 0 && (
-            <div className="col-span-full text-center py-20 text-base-content/50 text-xl">
-              No teams or players match your search.
-            </div>
-          )}
+                    )}
+                  </div>
+                </TransformComponent>
+              </>
+            )}
+          </TransformWrapper>
         </div>
       )}
     </div>

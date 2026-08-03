@@ -55,7 +55,10 @@ function AdminDashboard() {
     );
   }
 
-  return <AdminDashboardView />;
+  return <AdminDashboardView onLogout={() => {
+    setLoggedIn(false);
+    setPassword("");
+  }} />;
 }
 
 function StudentFlow() {
