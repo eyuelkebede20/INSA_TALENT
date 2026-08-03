@@ -1,29 +1,10 @@
 @import "tailwindcss";
+@plugin "daisyui";
 
 @theme {
   --font-sans: "Inter", system-ui, sans-serif;
-  --color-primary-500: #6366f1;
-  --color-secondary-500: #ec4899;
-}
-
-@layer utilities {
-  .glass {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-  }
-  
-  .glass-card {
-    background: rgba(17, 24, 39, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  }
 }
 
 body {
-  background-color: #09090b;
-  color: #f8fafc;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
