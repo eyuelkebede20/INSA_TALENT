@@ -16,6 +16,7 @@ export const user = pgTable("user", {
 export const session = pgTable("session", {
 	id: varchar("id", { length: 36 }).primaryKey(),
 	expiresAt: timestamp('expiresAt').notNull(),
+	token: text('token').notNull().unique(),
 	ipAddress: text('ipAddress'),
 	userAgent: text('userAgent'),
 	userId: varchar('userId', { length: 36 }).notNull().references(() => user.id),
