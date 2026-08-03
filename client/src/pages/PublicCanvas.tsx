@@ -34,8 +34,8 @@ export default function PublicCanvas() {
   });
 
   return (
-    <div className="absolute inset-0 top-[64px] flex flex-col">
-      <div className="p-4 z-20 absolute top-0 left-0 right-0 flex justify-center pointer-events-none">
+    <div className="fixed inset-0 top-[64px] z-40 bg-base-200 flex flex-col overflow-hidden">
+      <div className="p-4 z-50 absolute top-0 left-0 right-0 flex justify-center pointer-events-none">
         <div className="w-full max-w-lg relative pointer-events-auto shadow-2xl rounded-lg">
           <input 
             type="text" 
@@ -67,18 +67,18 @@ export default function PublicCanvas() {
           ))}
         </div>
       ) : (
-        <div className="flex-1 w-full relative bg-base-200/20">
-          <TransformWrapper initialScale={1} minScale={0.3} maxScale={3} centerOnInit limitToBounds={false}>
+        <div className="flex-1 w-full relative bg-base-200" style={{ backgroundImage: 'radial-gradient(#base-300 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
+          <TransformWrapper initialScale={1} minScale={0.1} maxScale={4} centerOnInit limitToBounds={false}>
             {({ zoomIn, zoomOut, resetTransform }) => (
               <>
                 <SearchZoomer filteredTeams={filteredTeams} />
-                <div className="absolute top-4 right-4 z-10 flex flex-col gap-2 bg-base-100 p-2 rounded-xl shadow-lg border border-base-300">
+                <div className="absolute top-20 right-6 z-50 flex flex-col gap-2 bg-base-100 p-2 rounded-xl shadow-lg border border-base-300">
                   <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomIn()}>+</button>
                   <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomOut()}>-</button>
                   <button className="btn btn-sm btn-square btn-ghost" onClick={() => resetTransform()}>⟲</button>
                 </div>
-                <TransformComponent wrapperClass="!w-full !h-full cursor-grab active:cursor-grabbing" contentClass="p-20 pt-32">
-                  <div className="flex flex-wrap gap-6 md:gap-10 justify-center w-[200vw] sm:w-[150vw] md:w-[100vw]">
+                <TransformComponent wrapperClass="!w-full !h-full cursor-grab active:cursor-grabbing" contentClass="p-[500px]">
+                  <div className="flex flex-wrap gap-8 justify-center min-w-[3000px]">
                     {filteredTeams.map((t: any) => (
                       <div id={`team-card-${t.id}`} key={t.id} className={`card bg-base-100 shadow-2xl border-t-8 w-[300px] md:w-[350px] shrink-0 ${t.is_locked ? 'border-t-success' : 'border-t-primary'}`}>
                         <div className="card-body p-6">
