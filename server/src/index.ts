@@ -7,6 +7,7 @@ import { toNodeHandler } from "better-auth/node";
 import { studentRouter } from "./routes/student";
 import { adminRouter } from "./routes/admin";
 import { publicRouter } from "./routes/public";
+import { cronRouter } from "./routes/cron";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ app.all("/api/auth/*catchall", toNodeHandler(auth));
 // Custom Routes
 app.use("/api/students", studentRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/cron", cronRouter);
 app.use("/api", publicRouter);
 
 app.get("/api/health", (req, res) => {

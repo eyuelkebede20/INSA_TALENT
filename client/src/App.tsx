@@ -2,12 +2,10 @@ import { Routes, Route } from 'react-router-dom';
 import { useState } from 'react';
 import { signIn, useSession, fetchApi } from './lib/api';
 
-function PublicCanvas() {
-  return <div className="p-10"><h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-indigo-400 to-pink-500 bg-clip-text text-transparent">Public Canvas</h1><div className="glass-card rounded-xl p-8 min-h-[400px]">Teams will appear here.</div></div>;
-}
-function Leaderboards() {
-  return <div className="p-10"><h1 className="text-4xl font-bold mb-4 text-white">Leaderboards</h1><div className="glass-card rounded-xl p-8 min-h-[400px]">Rankings will appear here.</div></div>;
-}
+import Leaderboards from './pages/Leaderboards';
+import PublicCanvas from './pages/PublicCanvas';
+import AdminDashboardView from './pages/AdminDashboard';
+
 function AdminDashboard() {
   const [password, setPassword] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
@@ -50,14 +48,7 @@ function AdminDashboard() {
     );
   }
 
-  return (
-    <div className="p-10 max-w-6xl mx-auto">
-      <h1 className="text-4xl font-bold mb-4 text-red-400">Admin Controls</h1>
-      <div className="glass-card rounded-xl p-8 min-h-[400px]">
-        <p className="text-gray-300">You are logged in! Team re-assignment and event controls will go here.</p>
-      </div>
-    </div>
-  );
+  return <AdminDashboardView />;
 }
 function StudentFlow() {
   const { data: session, isPending } = useSession();
