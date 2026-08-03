@@ -113,16 +113,16 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                    </h3>
                    <div className="space-y-3">
                      {t.members?.filter((m: any) => m).map((m: any) => (
-                       <div key={m.id} className="flex justify-between items-center p-3 rounded-lg bg-base-200 border border-base-300">
-                         <div>
+                       <div key={m.id} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-3 rounded-lg bg-base-200 border border-base-300">
+                         <div className="w-full md:w-auto">
                            <span className="font-bold">{m.name}</span>
                            <span className="ml-2 badge badge-ghost badge-sm">{m.tier} ({m.rating})</span>
                          </div>
-                         <div className="flex gap-2 items-center">
-                           <select className="select select-bordered select-sm max-w-xs" onChange={(e) => handleReassign(m.id, +e.target.value)} value={t.id}>
+                         <div className="flex gap-2 items-center w-full md:w-auto justify-end">
+                           <select className="select select-bordered select-sm w-full md:max-w-xs" onChange={(e) => handleReassign(m.id, +e.target.value)} value={t.id}>
                              {teams.map((tOpt: any) => <option key={tOpt.id} value={tOpt.id}>Move to Team {tOpt.team_number}</option>)}
                            </select>
-                           <button onClick={() => handleDelete(m.id)} className="btn btn-error btn-sm btn-outline">Kick</button>
+                           <button onClick={() => handleDelete(m.id)} className="btn btn-error btn-sm btn-outline whitespace-nowrap">Kick</button>
                          </div>
                        </div>
                      ))}

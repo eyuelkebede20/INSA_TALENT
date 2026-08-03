@@ -80,7 +80,7 @@ export default function PublicCanvas() {
                 <TransformComponent wrapperClass="!w-full !h-full cursor-grab active:cursor-grabbing" contentClass="p-[500px]">
                   <div className="flex flex-wrap gap-8 justify-center min-w-[3000px]">
                     {filteredTeams.map((t: any) => (
-                      <div id={`team-card-${t.id}`} key={t.id} className={`card bg-base-100 shadow-2xl border-t-8 w-[300px] md:w-[350px] shrink-0 ${t.is_locked ? 'border-t-success' : 'border-t-primary'}`}>
+                      <div id={`team-card-${t.id}`} key={t.id} className={`card bg-base-100 shadow-2xl border-t-8 w-[300px] md:w-[350px] shrink-0 transition-all ${t.is_locked ? 'border-t-success shadow-[0_0_30px_rgba(0,255,100,0.3)] hover:shadow-[0_0_40px_rgba(0,255,100,0.5)]' : 'border-t-primary hover:shadow-[0_0_20px_rgba(var(--primary),0.2)]'}`}>
                         <div className="card-body p-6">
                           <div className="flex justify-between items-center mb-6">
                             <h3 className="card-title text-2xl font-bold">Team {t.team_number}</h3>
