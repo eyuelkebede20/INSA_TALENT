@@ -112,7 +112,7 @@ function StudentFlow() {
           lichess_username: lichess || undefined, 
           chesscom_username: chesscom || undefined,
           manual_rating: manualRating ? parseInt(manualRating) : undefined,
-          insa_code: insa 
+          insa_code: `CTC-03942-26-${insa.replace(/^-+/, '')}` 
         })
       });
       setStatus("Success! You've been assigned to a team.");
@@ -152,7 +152,10 @@ function StudentFlow() {
 
             <div className="form-control w-full">
               <label className="label"><span className="label-text font-bold text-primary">INSA Student Code</span></label>
-              <input type="text" required value={insa} onChange={e => setInsa(e.target.value)} className="input input-bordered w-full" placeholder="e.g. INSA-1234" />
+              <div className="join w-full">
+                <span className="join-item btn bg-base-200 border-base-300 pointer-events-none">CTC-03942-26</span>
+                <input type="text" required value={insa} onChange={e => setInsa(e.target.value)} className="input input-bordered join-item w-full" placeholder="e.g. 1234" />
+              </div>
             </div>
             <button type="submit" className="btn btn-primary w-full mt-4" disabled={loading}>
               {loading ? <span className="loading loading-spinner"></span> : "Complete Profile"}
