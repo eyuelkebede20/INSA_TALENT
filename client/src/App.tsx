@@ -145,6 +145,7 @@ function StudentFlow() {
 
 function App() {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+  const { data: session } = useSession();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -162,10 +163,41 @@ function App() {
           <Link to="/" className="text-xl font-bold tracking-tighter">INSA<span className="text-primary">TALENT</span></Link>
         </div>
         <div className="flex-none flex items-center gap-4">
-          <ul className="menu menu-horizontal px-1 font-semibold gap-2">
+          <ul className="menu menu-horizontal px-1 font-semibold gap-2 items-center">
             <li><Link to="/">Canvas</Link></li>
             <li><Link to="/leaderboards">Leaderboards</Link></li>
-            <li><Link to="/student" className="text-primary">Student Login</Link></li>
+            
+            {session ? (
+              <li className="dropdown dropdown-end">
+                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar border border-primary p-0">
+                  <div className="w-10 rounded-full">
+                    <img alt="User avatar" src={session.user.image || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png"} />
+                  </div>
+                </div>
+                <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 border border-base-300">
+                  <li className="menu-title text-primary">{session.user.name}</li>
+                  <li><Link to="/student">Complete Profile</Link></li>
+                  <li><a className="text-error" onClick={async () => {
+                     await fetchApi("/auth/sign-out", { method: "POST" });
+                     window.location.reload();
+                  }}>Logout</a></li>
+                </ul>
+              </li>
+            ) : (
+              <li>
+                <button 
+                  className="btn btn-primary btn-sm mt-1"
+                  onClick={async () => {
+                    await signIn.social({ 
+                      provider: 'google', 
+                      callbackURL: `${window.location.origin}/student` 
+                    });
+                  }}
+                >
+                  Student Login
+                </button>
+              </li>
+            )}
           </ul>
           
           <label className="swap swap-rotate btn btn-ghost btn-circle">
