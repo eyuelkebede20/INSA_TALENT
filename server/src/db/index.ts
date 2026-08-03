@@ -3,5 +3,9 @@ import postgres from 'postgres';
 import 'dotenv/config';
 import * as schema from './schema';
 
-const client = postgres(process.env.DATABASE_URL as string, { prepare: false });
+const connectionString = process.env.DATABASE_URL as string;
+const client = postgres(connectionString, { 
+  prepare: false,
+  ssl: connectionString.includes('render.com') ? 'require' : false
+});
 export const db = drizzle(client, { schema });
