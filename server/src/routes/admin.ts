@@ -29,20 +29,25 @@ adminRouter.post("/logout", (req, res) => {
 });
 
 adminRouter.use((req, res, next) => {
-    // Basic auth check
     const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1]; // Wait, we might need cookie-parser but let's support Bearer for simplicity
+    if (authHeader && authHeader === `Bearer ${process.env.ADMIN_PASSWORD}`) {
+        return next();
+    }
     
-    if (!token) {
-        res.status(401).json({ error: "Unauthorized" });
-        return;
+    const cookies = req.headers.cookie;
+    if (cookies) {
+        const tokenMatch = cookies.match(/admin_token=([^;]+)/);
+        if (tokenMatch && tokenMatch[1]) {
+            try {
+                jwt.verify(tokenMatch[1], process.env.JWT_SECRET as string);
+                return next();
+            } catch (err) {
+                // fall through
+            }
+        }
     }
-    try {
-        jwt.verify(token, process.env.JWT_SECRET as string);
-        next();
-    } catch (e) {
-        res.status(401).json({ error: "Unauthorized" });
-    }
+
+    res.status(401).json({ error: "Unauthorized" });
 });
 
 adminRouter.get("/teams", async (req, res) => {
