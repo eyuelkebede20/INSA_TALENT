@@ -80,7 +80,12 @@ function StudentFlow() {
             <h2 className="card-title text-3xl font-bold mb-4">Student Login</h2>
             <p className="text-base-content/70 mb-6">Sign in with your Google account to join a team.</p>
             <button 
-              onClick={() => signIn.social({ provider: 'google', callbackURL: '/student' })}
+              onClick={async () => {
+                await signIn.social({ 
+                  provider: 'google', 
+                  callbackURL: `${window.location.origin}/student` 
+                });
+              }}
               className="btn btn-primary w-full"
             >
               Sign in with Google
@@ -153,8 +158,8 @@ function App() {
         <div className="flex-1">
           <Link to="/" className="text-xl font-bold tracking-tighter">INSA<span className="text-primary">TALENT</span></Link>
         </div>
-        <div className="flex-none gap-4">
-          <ul className="menu menu-horizontal px-1 font-semibold gap-2 hidden md:flex">
+        <div className="flex-none flex items-center gap-4">
+          <ul className="menu menu-horizontal px-1 font-semibold gap-2">
             <li><Link to="/">Canvas</Link></li>
             <li><Link to="/leaderboards">Leaderboards</Link></li>
             <li><Link to="/student" className="text-primary">Student Login</Link></li>
