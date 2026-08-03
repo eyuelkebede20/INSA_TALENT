@@ -29,8 +29,13 @@ export default function PublicCanvas() {
     const q = searchQuery.toLowerCase();
     // match team number
     if (t.team_number.toString().includes(q) || `team ${t.team_number}`.includes(q)) return true;
-    // match member name
-    return t.members?.some((m: any) => m && m.name && m.name.toLowerCase().includes(q));
+    // match member name or insa code
+    return t.members?.some((m: any) => 
+      m && (
+        (m.name && m.name.toLowerCase().includes(q)) ||
+        (m.insa_code && m.insa_code.toLowerCase().includes(q))
+      )
+    );
   });
 
   return (
@@ -39,7 +44,7 @@ export default function PublicCanvas() {
         <div className="w-full max-w-lg relative pointer-events-auto shadow-2xl rounded-lg">
           <input 
             type="text" 
-            placeholder="Search for a team number or player name..." 
+            placeholder="Search for a team number, player name, or INSA ID..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="input input-bordered w-full pl-10 bg-base-100/90 backdrop-blur"
