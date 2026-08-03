@@ -1,6 +1,7 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { signIn, useSession, fetchApi } from './lib/api';
+import { Toaster, toast } from 'sonner';
 
 import Leaderboards from './pages/Leaderboards';
 import PublicCanvas from './pages/PublicCanvas';
@@ -9,7 +10,6 @@ import AdminDashboardView from './pages/AdminDashboard';
 function AdminDashboard() {
   const [password, setPassword] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
-  const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -21,8 +21,9 @@ function AdminDashboard() {
         body: JSON.stringify({ password })
       });
       setLoggedIn(true);
+      toast.success("Logged in as Admin");
     } catch (err: any) {
-      setStatus("Invalid admin password");
+      toast.error(err.message || "Invalid admin password");
     } finally {
       setLoading(false);
     }
@@ -48,7 +49,6 @@ function AdminDashboard() {
                 {loading ? <span className="loading loading-spinner"></span> : "Login"}
               </button>
             </form>
-            {status && <p className="text-sm text-error mt-2">{status}</p>}
           </div>
         </div>
       </div>
@@ -67,7 +67,6 @@ function StudentFlow() {
   const [chesscom, setChesscom] = useState("");
   const [manualRating, setManualRating] = useState("");
   const [insaDigits, setInsaDigits] = useState(["", "", "", ""]);
-  const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleDigitChange = (index: number, value: string) => {
@@ -122,11 +121,10 @@ function StudentFlow() {
     e.preventDefault();
     const insaStr = insaDigits.join("");
     if (insaStr.length !== 4) {
-      setStatus("Please enter all 4 digits of your INSA code.");
+      toast.error("Please enter all 4 digits of your INSA code.");
       return;
     }
     setLoading(true);
-    setStatus("Submitting...");
     try {
       await fetchApi("/students/complete-profile", {
         method: "POST",
@@ -137,9 +135,12 @@ function StudentFlow() {
           insa_code: `CTC-${insaStr}-26`
         })
       });
-      setStatus("Success! You've been assigned to a team.");
+      toast.success("Success! You've been assigned to a team.");
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1500);
     } catch (err: any) {
-      setStatus(err.message);
+      toast.error(err.message || "Failed to complete profile");
     } finally {
       setLoading(false);
     }
@@ -198,7 +199,6 @@ function StudentFlow() {
               {loading ? <span className="loading loading-spinner"></span> : "Complete Profile"}
             </button>
           </form>
-          {status && <p className="mt-4 text-center text-sm font-bold text-success">{status}</p>}
         </div>
       </div>
     </div>
@@ -220,7 +220,8 @@ function App() {
 
   return (
     <div className="min-h-screen bg-base-200 font-sans pb-20">
-      <div className="navbar bg-base-100 shadow-sm sticky top-0 z-50 border-b border-base-300 px-6">
+      <Toaster position="top-center" richColors />
+      <div className="navbar bg-base-100 shadow-sm sticky top-0 z-50 border-b border-base-300 px-2 sm:px-6">
         <div className="flex-1">
           <Link to="/" className="text-xl font-bold tracking-tighter">INSA<span className="text-primary">TALENT</span></Link>
         </div>
@@ -272,12 +273,12 @@ function App() {
         </div>
       </div>
       
-      <main className="max-w-7xl mx-auto px-4 mt-8">
+      <main className="mx-auto w-full h-[calc(100vh-65px)] relative">
         <Routes>
           <Route path="/" element={<PublicCanvas />} />
-          <Route path="/leaderboards" element={<Leaderboards />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/student" element={<StudentFlow />} />
+          <Route path="/leaderboards" element={<div className="max-w-7xl mx-auto px-4 mt-8 h-full"><Leaderboards /></div>} />
+          <Route path="/admin" element={<div className="max-w-7xl mx-auto px-4 mt-8 h-full"><AdminDashboard /></div>} />
+          <Route path="/student" element={<div className="max-w-7xl mx-auto px-4 mt-8 h-full"><StudentFlow /></div>} />
         </Routes>
       </main>
     </div>

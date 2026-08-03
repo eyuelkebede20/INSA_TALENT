@@ -1,22 +1,12 @@
-# INSA_TALENT Remaining Tasks
+# Remaining Tasks for Production Polish
 
-- [x] Task 1: Admin Settings Endpoint & Recalculation (Backend)
-  - [x] Implement `POST /api/admin/settings` to update `advanced_threshold` / `mid_threshold`.
-  - [x] Implement recalculation logic: detach players whose tiers change (if team unlocked), then re-run EOS grouping for them.
-
-- [x] Task 2: Lichess Cron Sync Worker (Backend)
-  - [x] Implement `POST /api/cron/sync-lichess-queue`.
-  - [x] Create batched API fetcher to Lichess API.
-  - [x] Update `player_daily_stats`.
-
-- [x] Task 3: Admin Dashboard UI (Frontend)
-  - [x] Build login form for `ADMIN_PASSWORD`.
-  - [x] Build drag-and-drop interface (`@hello-pangea/dnd`) for reassigning teams.
-  - [x] Build interface to delete players and update event settings.
-
-- [x] Task 4: Leaderboards UI & Export (Frontend)
-  - [x] Build UI to display Individual, Team Rating, and Team Net Wins leaderboards.
-  - [x] Add `html2canvas` export button to download shareable PNGs.
-
-- [x] Task 5: Public Canvas UI (Frontend)
-  - [x] Build panning/zooming canvas to display teams visually.
+- [ ] **Canvas UI Optimization**: 
+  - Make the infinite canvas full-screen.
+  - Remove the canvas title.
+  - Keep the search bar.
+  - Ensure the iframe doesn't block zooming and panning (make it fully interactive/full height).
+- [ ] **Mobile Responsiveness**:
+  - Review and fix all screens (Canvas, Leaderboards, Admin Dashboard, Profile Completion) to ensure they are fully responsive and look good on mobile devices.
+- [ ] **Better Error Handling (Sonner)**:
+  - Install and configure `sonner` for toast notifications in the React app.
+  - Replace raw `API ERROR` messages and vague alerts with user-friendly toast notifications across the entire app (e.g., login, profile submission, admin updates).

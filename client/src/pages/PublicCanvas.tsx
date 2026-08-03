@@ -24,18 +24,15 @@ export default function PublicCanvas() {
   });
 
   return (
-    <div className="space-y-10">
-      <div className="text-center mt-6">
-        <h1 className="text-5xl font-black mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">INSA TALENT CANVAS</h1>
-        <p className="text-base-content/60 max-w-2xl mx-auto text-lg mb-8">Live view of all assembled teams and their current rosters.</p>
-        
-        <div className="max-w-lg mx-auto relative">
+    <div className="absolute inset-0 top-[64px] flex flex-col">
+      <div className="p-4 z-20 absolute top-0 left-0 right-0 flex justify-center pointer-events-none">
+        <div className="w-full max-w-lg relative pointer-events-auto shadow-2xl rounded-lg">
           <input 
             type="text" 
             placeholder="Search for a team number or player name..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input input-bordered w-full pl-10 bg-base-100 shadow-sm"
+            className="input input-bordered w-full pl-10 bg-base-100/90 backdrop-blur"
           />
           <svg className="w-5 h-5 absolute left-3 top-3.5 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </div>
@@ -60,7 +57,7 @@ export default function PublicCanvas() {
           ))}
         </div>
       ) : (
-        <div className="relative w-full h-[75vh] border border-base-300 rounded-2xl overflow-hidden bg-base-200/20 shadow-inner">
+        <div className="flex-1 w-full relative bg-base-200/20">
           <TransformWrapper initialScale={1} minScale={0.3} maxScale={3} centerOnInit limitToBounds={false}>
             {({ zoomIn, zoomOut, resetTransform }) => (
               <>
@@ -69,10 +66,10 @@ export default function PublicCanvas() {
                   <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomOut()}>-</button>
                   <button className="btn btn-sm btn-square btn-ghost" onClick={() => resetTransform()}>⟲</button>
                 </div>
-                <TransformComponent wrapperClass="!w-full !h-full cursor-grab active:cursor-grabbing" contentClass="p-20">
-                  <div className="flex flex-wrap gap-10 justify-center w-[150vw] md:w-[100vw]">
+                <TransformComponent wrapperClass="!w-full !h-full cursor-grab active:cursor-grabbing" contentClass="p-20 pt-32">
+                  <div className="flex flex-wrap gap-6 md:gap-10 justify-center w-[200vw] sm:w-[150vw] md:w-[100vw]">
                     {filteredTeams.map((t: any) => (
-                      <div key={t.id} className={`card bg-base-100 shadow-2xl border-t-8 w-[350px] shrink-0 ${t.is_locked ? 'border-t-success' : 'border-t-primary'}`}>
+                      <div key={t.id} className={`card bg-base-100 shadow-2xl border-t-8 w-[300px] md:w-[350px] shrink-0 ${t.is_locked ? 'border-t-success' : 'border-t-primary'}`}>
                         <div className="card-body p-6">
                           <div className="flex justify-between items-center mb-6">
                             <h3 className="card-title text-2xl font-bold">Team {t.team_number}</h3>

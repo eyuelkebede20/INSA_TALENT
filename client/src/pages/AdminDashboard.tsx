@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { fetchApi } from '../lib/api';
+import { toast } from 'sonner';
 
 export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [teams, setTeams] = useState<any[]>([]);
   const [settings, setSettings] = useState({ advanced: 1200, mid: 600 });
-  const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,22 +15,35 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   }, []);
 
   const handleReassign = async (playerId: string, teamId: number) => {
-    await fetchApi('/admin/reassign', { method: 'POST', body: JSON.stringify({ player_id: playerId, target_team_id: teamId }) });
-    fetchApi('/admin/teams').then(setTeams);
+    try {
+      await fetchApi('/admin/reassign', { method: 'POST', body: JSON.stringify({ player_id: playerId, target_team_id: teamId }) });
+      toast.success("Player reassigned");
+      fetchApi('/admin/teams').then(setTeams);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to reassign player");
+    }
   };
 
   const handleDelete = async (playerId: string) => {
     if(!confirm("Delete player? This will trigger an automatic cascade backfill.")) return;
-    await fetchApi(`/admin/players/${playerId}`, { method: 'DELETE' });
-    fetchApi('/admin/teams').then(setTeams);
+    try {
+      await fetchApi(`/admin/players/${playerId}`, { method: 'DELETE' });
+      toast.success("Player deleted");
+      fetchApi('/admin/teams').then(setTeams);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete player");
+    }
   };
 
   const updateSettings = async (e: any) => {
     e.preventDefault();
-    setStatus("Updating...");
-    await fetchApi('/admin/settings', { method: 'POST', body: JSON.stringify({ advanced_threshold: settings.advanced, mid_threshold: settings.mid }) });
-    setStatus("Updated & Recalculated!");
-    fetchApi('/admin/teams').then(setTeams);
+    try {
+      await fetchApi('/admin/settings', { method: 'POST', body: JSON.stringify({ advanced_threshold: settings.advanced, mid_threshold: settings.mid }) });
+      toast.success("Updated & Recalculated!");
+      fetchApi('/admin/teams').then(setTeams);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update settings");
+    }
   };
 
   const handleLogout = async () => {
@@ -69,7 +82,6 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 </div>
                 <button type="submit" className="btn btn-error w-full mt-2">Update & Recalculate</button>
               </form>
-              {status && <p className="text-center text-sm font-bold text-success mt-4">{status}</p>}
             </div>
           </div>
         </div>
