@@ -43,25 +43,41 @@ studentRouter.post("/complete-profile", async (req, res) => {
         let rating = 1000;
         let finalLichess = lichess_username || null;
         let finalChesscom = chesscom_username || null;
+        let foundRating = false;
 
-        if (lichess_username) {
-            const resp = await fetch(`https://lichess.org/api/user/${lichess_username}`);
-            if (resp.ok) {
-                const data = await resp.json();
-                rating = data.perfs?.blitz?.rating || data.perfs?.rapid?.rating || 1000;
-            } else {
-                return res.status(400).json({ error: "Lichess account not found" });
+        if (lichess_username && !foundRating) {
+            try {
+                const resp = await fetch(`https://lichess.org/api/user/${lichess_username}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    rating = data.perfs?.blitz?.rating || data.perfs?.rapid?.rating || 1000;
+                    foundRating = true;
+                }
+            } catch (e) {
+                // Ignore and fall back
             }
-        } else if (chesscom_username) {
-            const resp = await fetch(`https://api.chess.com/pub/player/${chesscom_username}/stats`);
-            if (resp.ok) {
-                const data = await resp.json();
-                rating = data.chess_blitz?.last?.rating || data.chess_rapid?.last?.rating || 1000;
-            } else {
-                return res.status(400).json({ error: "Chess.com account not found" });
+        } 
+        
+        if (chesscom_username && !foundRating) {
+            try {
+                const resp = await fetch(`https://api.chess.com/pub/player/${chesscom_username}/stats`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    rating = data.chess_blitz?.last?.rating || data.chess_rapid?.last?.rating || 1000;
+                    foundRating = true;
+                }
+            } catch (e) {
+                // Ignore and fall back
             }
-        } else if (manual_rating) {
+        } 
+        
+        if (manual_rating && !foundRating) {
             rating = manual_rating;
+            foundRating = true;
+        }
+
+        if (!foundRating && !manual_rating) {
+             rating = 1000; // ultimate fallback
         }
 
         const settingsRes = await db.execute(sql`SELECT advanced_threshold, mid_threshold FROM event_settings LIMIT 1`);

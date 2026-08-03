@@ -131,25 +131,21 @@ function StudentFlow() {
           <p className="text-base-content/70 mb-4">Please complete your profile to be grouped.</p>
           
           <form onSubmit={handleSubmit} className="space-y-4">
-            <p className="text-xs font-bold text-base-content/50 uppercase tracking-widest mb-2 mt-4">Platform Link (Choose One)</p>
+            <p className="text-xs font-bold text-base-content/50 uppercase tracking-widest mb-2 mt-4">Platform Details (Provide any that apply)</p>
             
             <div className="form-control w-full">
               <label className="label"><span className="label-text font-bold">Lichess Username</span></label>
-              <input type="text" value={lichess} onChange={e => { setLichess(e.target.value); setChesscom(""); setManualRating(""); }} className="input input-bordered w-full" placeholder="e.g. MagnusCarlsen" />
+              <input type="text" value={lichess} onChange={e => setLichess(e.target.value)} className="input input-bordered w-full" placeholder="e.g. MagnusCarlsen" />
             </div>
-            
-            <div className="divider text-xs opacity-50">OR</div>
             
             <div className="form-control w-full">
               <label className="label"><span className="label-text font-bold">Chess.com Username</span></label>
-              <input type="text" value={chesscom} onChange={e => { setChesscom(e.target.value); setLichess(""); setManualRating(""); }} className="input input-bordered w-full" placeholder="e.g. Hikaru" />
+              <input type="text" value={chesscom} onChange={e => setChesscom(e.target.value)} className="input input-bordered w-full" placeholder="e.g. Hikaru" />
             </div>
 
-            <div className="divider text-xs opacity-50">OR</div>
-
             <div className="form-control w-full">
-              <label className="label"><span className="label-text font-bold">Manual Rating (No Account)</span></label>
-              <input type="number" value={manualRating} onChange={e => { setManualRating(e.target.value); setLichess(""); setChesscom(""); }} className="input input-bordered w-full" placeholder="e.g. 1500" />
+              <label className="label"><span className="label-text font-bold">What is your rating</span></label>
+              <input type="number" value={manualRating} onChange={e => setManualRating(e.target.value)} className="input input-bordered w-full" placeholder="e.g. 1500" />
             </div>
 
             <div className="divider"></div>
