@@ -1,27 +1,22 @@
-# INSA_TALENT Development Tasks
+# INSA_TALENT Remaining Tasks
 
+- [x] Task 1: Admin Settings Endpoint & Recalculation (Backend)
+  - [x] Implement `POST /api/admin/settings` to update `advanced_threshold` / `mid_threshold`.
+  - [x] Implement recalculation logic: detach players whose tiers change (if team unlocked), then re-run EOS grouping for them.
 
+- [ ] Task 2: Lichess Cron Sync Worker (Backend)
+  - [ ] Implement `POST /api/cron/sync-lichess-queue`.
+  - [ ] Create batched API fetcher to Lichess API.
+  - [ ] Update `player_daily_stats`.
 
-- [ ] Task 2: Database Setup (Server)
-  - [x] Configure Drizzle ORM and Neon/PostgreSQL connection.
-  - [x] Write schema definition (`schema.ts`) matching `claude.md`.
-  - [ ] Generate and apply initial database migrations.
+- [ ] Task 3: Admin Dashboard UI (Frontend)
+  - [ ] Build login form for `ADMIN_PASSWORD`.
+  - [ ] Build drag-and-drop interface (`@hello-pangea/dnd`) for reassigning teams.
+  - [ ] Build interface to delete players and update event settings.
 
-- [x] Task 7: Frontend Foundation
-  - [x] Set up React Router, React Query (for API), and Zustand (for UI state).
-  - [x] Establish base layout and UI components (buttons, modals, tables).
-  - [ ] Set up React Router, React Query (for API), and Zustand (for UI state).
-  - [ ] Establish base layout and UI components (buttons, modals, tables).
+- [ ] Task 4: Leaderboards UI & Export (Frontend)
+  - [ ] Build UI to display Individual, Team Rating, and Team Net Wins leaderboards.
+  - [ ] Add `html2canvas` export button to download shareable PNGs.
 
-- [ ] Task 8: Student & Public UI
-  - [ ] Build OAuth login and profile completion form.
-  - [ ] Build the Public Canvas with pan/zoom to find teams.
-
-- [ ] Task 9: Leaderboard UI
-  - [ ] Display the 3 leaderboards securely.
-  - [ ] Implement `html2canvas` for exporting the leaderboards to PNG.
-
-- [ ] Task 10: Superadmin Dashboard UI
-  - [ ] Implement secure login form.
-  - [ ] Build drag-and-drop interface for managing unlocked teams.
-  - [ ] Add controls for updating event settings and deleting users.
+- [ ] Task 5: Public Canvas UI (Frontend)
+  - [ ] Build panning/zooming canvas to display teams visually.
