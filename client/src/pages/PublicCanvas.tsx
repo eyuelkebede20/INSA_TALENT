@@ -4,6 +4,7 @@ import { fetchApi } from '../lib/api';
 export default function PublicCanvas() {
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   
   useEffect(() => {
     fetchApi('/canvas').then((data) => {
@@ -12,11 +13,31 @@ export default function PublicCanvas() {
     });
   }, []);
 
+  const filteredTeams = teams.filter(t => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    // match team number
+    if (t.team_number.toString().includes(q) || `team ${t.team_number}`.includes(q)) return true;
+    // match member name
+    return t.members?.some((m: any) => m && m.name && m.name.toLowerCase().includes(q));
+  });
+
   return (
     <div className="space-y-10">
       <div className="text-center mt-6">
         <h1 className="text-5xl font-black mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">INSA TALENT CANVAS</h1>
-        <p className="text-base-content/60 max-w-2xl mx-auto text-lg">Live view of all assembled teams and their current rosters.</p>
+        <p className="text-base-content/60 max-w-2xl mx-auto text-lg mb-8">Live view of all assembled teams and their current rosters.</p>
+        
+        <div className="max-w-lg mx-auto relative">
+          <input 
+            type="text" 
+            placeholder="Search for a team number or player name..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="input input-bordered w-full pl-10 bg-base-100 shadow-sm"
+          />
+          <svg className="w-5 h-5 absolute left-3 top-3.5 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
       </div>
       
       {loading ? (
@@ -39,7 +60,7 @@ export default function PublicCanvas() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {teams.map((t: any) => (
+          {filteredTeams.map((t: any) => (
             <div key={t.id} className={`card bg-base-100 shadow-xl border-t-4 transition-transform hover:-translate-y-1 ${t.is_locked ? 'border-t-success' : 'border-t-primary'}`}>
               <div className="card-body p-6">
                 <div className="flex justify-between items-center mb-6">
@@ -74,9 +95,9 @@ export default function PublicCanvas() {
               </div>
             </div>
           ))}
-          {teams.length === 0 && (
+          {filteredTeams.length === 0 && (
             <div className="col-span-full text-center py-20 text-base-content/50 text-xl">
-              No teams have been formed yet. The Canvas is blank.
+              No teams or players match your search.
             </div>
           )}
         </div>
