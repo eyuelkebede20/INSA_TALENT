@@ -66,7 +66,7 @@ function StudentFlow() {
   const [lichess, setLichess] = useState("");
   const [chesscom, setChesscom] = useState("");
   const [manualRating, setManualRating] = useState("");
-  const [insaDigits, setInsaDigits] = useState(["", "", "", "", ""]);
+  const [insaDigits, setInsaDigits] = useState(["", "", "", ""]);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -76,7 +76,7 @@ function StudentFlow() {
     newDigits[index] = value.slice(-1);
     setInsaDigits(newDigits);
     
-    if (value && index < 4) {
+    if (value && index < 3) {
       document.getElementById(`digit-${index + 1}`)?.focus();
     }
   };
@@ -121,8 +121,8 @@ function StudentFlow() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const insaStr = insaDigits.join("");
-    if (insaStr.length !== 5) {
-      setStatus("Please enter all 5 digits of your INSA code.");
+    if (insaStr.length !== 4) {
+      setStatus("Please enter all 4 digits of your INSA code.");
       return;
     }
     setLoading(true);
