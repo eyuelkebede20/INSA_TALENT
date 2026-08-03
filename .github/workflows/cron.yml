@@ -1,0 +1,16 @@
+name: 12-Hour Lichess Sync
+
+on:
+  schedule:
+    # Runs every 12 hours (e.g. 00:00 and 12:00 UTC)
+    - cron: '0 */12 * * *'
+  workflow_dispatch: # Allows you to manually trigger the sync from GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Lichess Sync API
+        run: |
+          curl -X POST https://insa-talent-1.onrender.com/api/cron/sync-lichess \
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
