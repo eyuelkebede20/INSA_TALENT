@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import { fetchApi } from '../lib/api';
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { TransformWrapper, TransformComponent, useControls } from "react-zoom-pan-pinch";
+
+const SearchZoomer = ({ filteredTeams }: { filteredTeams: any[] }) => {
+  const { zoomToElement } = useControls();
+  useEffect(() => {
+    if (filteredTeams.length === 1) {
+      zoomToElement(`team-card-${filteredTeams[0].id}`, 1.5, 500);
+    }
+  }, [filteredTeams, zoomToElement]);
+  return null;
+};
 
 export default function PublicCanvas() {
   const [teams, setTeams] = useState<any[]>([]);
@@ -61,6 +71,7 @@ export default function PublicCanvas() {
           <TransformWrapper initialScale={1} minScale={0.3} maxScale={3} centerOnInit limitToBounds={false}>
             {({ zoomIn, zoomOut, resetTransform }) => (
               <>
+                <SearchZoomer filteredTeams={filteredTeams} />
                 <div className="absolute top-4 right-4 z-10 flex flex-col gap-2 bg-base-100 p-2 rounded-xl shadow-lg border border-base-300">
                   <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomIn()}>+</button>
                   <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomOut()}>-</button>
@@ -69,7 +80,7 @@ export default function PublicCanvas() {
                 <TransformComponent wrapperClass="!w-full !h-full cursor-grab active:cursor-grabbing" contentClass="p-20 pt-32">
                   <div className="flex flex-wrap gap-6 md:gap-10 justify-center w-[200vw] sm:w-[150vw] md:w-[100vw]">
                     {filteredTeams.map((t: any) => (
-                      <div key={t.id} className={`card bg-base-100 shadow-2xl border-t-8 w-[300px] md:w-[350px] shrink-0 ${t.is_locked ? 'border-t-success' : 'border-t-primary'}`}>
+                      <div id={`team-card-${t.id}`} key={t.id} className={`card bg-base-100 shadow-2xl border-t-8 w-[300px] md:w-[350px] shrink-0 ${t.is_locked ? 'border-t-success' : 'border-t-primary'}`}>
                         <div className="card-body p-6">
                           <div className="flex justify-between items-center mb-6">
                             <h3 className="card-title text-2xl font-bold">Team {t.team_number}</h3>
