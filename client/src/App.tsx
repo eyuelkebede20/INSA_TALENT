@@ -1,4 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
+import { useState } from 'react';
+import { signIn, useSession, fetchApi } from './lib/api';
 
 function PublicCanvas() {
   return <div className="p-10"><h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-indigo-400 to-pink-500 bg-clip-text text-transparent">Public Canvas</h1><div className="glass-card rounded-xl p-8 min-h-[400px]">Teams will appear here.</div></div>;
@@ -10,7 +12,67 @@ function AdminDashboard() {
   return <div className="p-10"><h1 className="text-4xl font-bold mb-4 text-red-400">Superadmin</h1><div className="glass-card rounded-xl p-8 min-h-[400px]">Admin controls will appear here.</div></div>;
 }
 function StudentFlow() {
-  return <div className="p-10"><h1 className="text-4xl font-bold mb-4 text-blue-400">Student Portal</h1><div className="glass-card rounded-xl p-8 min-h-[400px]">Onboarding will appear here.</div></div>;
+  const { data: session, isPending } = useSession();
+  const [lichess, setLichess] = useState("");
+  const [insa, setInsa] = useState("");
+  const [status, setStatus] = useState("");
+
+  if (isPending) return <div className="p-10 text-white text-center mt-20">Loading...</div>;
+
+  if (!session) {
+    return (
+      <div className="p-10 max-w-md mx-auto mt-20">
+        <div className="glass-card rounded-2xl p-10 text-center">
+          <h1 className="text-3xl font-bold mb-6 text-white">Student Login</h1>
+          <p className="text-gray-400 mb-8 text-sm">Sign in with your Google account to join a team.</p>
+          <button 
+            onClick={() => signIn.social({ provider: 'google', callbackURL: '/student' })}
+            className="w-full bg-white text-black font-bold py-3 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Sign in with Google
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus("Submitting...");
+    try {
+      await fetchApi("/students/complete-profile", {
+        method: "POST",
+        body: JSON.stringify({ lichess_username: lichess, insa_code: insa })
+      });
+      setStatus("Success! You've been assigned to a team.");
+    } catch (err: any) {
+      setStatus(err.message);
+    }
+  };
+
+  return (
+    <div className="p-10 max-w-md mx-auto mt-10">
+      <div className="glass-card rounded-2xl p-8">
+        <h2 className="text-2xl font-bold mb-2 text-white">Welcome, {session.user.name}</h2>
+        <p className="text-gray-400 mb-6 text-sm">Please complete your profile to be grouped.</p>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Lichess Username</label>
+            <input type="text" required value={lichess} onChange={e => setLichess(e.target.value)} className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all" placeholder="MagnusCarlsen" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">INSA Code</label>
+            <input type="text" required value={insa} onChange={e => setInsa(e.target.value)} className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all" placeholder="e.g. INSA-1234" />
+          </div>
+          <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-colors mt-4">
+            Complete Profile
+          </button>
+        </form>
+        {status && <p className="mt-4 text-center text-sm text-pink-400 font-medium">{status}</p>}
+      </div>
+    </div>
+  );
 }
 
 function App() {
