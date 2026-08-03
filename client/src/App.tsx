@@ -64,6 +64,8 @@ function AdminDashboard() {
 function StudentFlow() {
   const { data: session, isPending } = useSession();
   const [lichess, setLichess] = useState("");
+  const [chesscom, setChesscom] = useState("");
+  const [manualRating, setManualRating] = useState("");
   const [insa, setInsa] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
@@ -106,7 +108,12 @@ function StudentFlow() {
     try {
       await fetchApi("/students/complete-profile", {
         method: "POST",
-        body: JSON.stringify({ lichess_username: lichess, insa_code: insa })
+        body: JSON.stringify({ 
+          lichess_username: lichess || undefined, 
+          chesscom_username: chesscom || undefined,
+          manual_rating: manualRating ? parseInt(manualRating) : undefined,
+          insa_code: insa 
+        })
       });
       setStatus("Success! You've been assigned to a team.");
     } catch (err: any) {
@@ -124,12 +131,31 @@ function StudentFlow() {
           <p className="text-base-content/70 mb-4">Please complete your profile to be grouped.</p>
           
           <form onSubmit={handleSubmit} className="space-y-4">
+            <p className="text-xs font-bold text-base-content/50 uppercase tracking-widest mb-2 mt-4">Platform Link (Choose One)</p>
+            
             <div className="form-control w-full">
-              <label className="label"><span className="label-text">Lichess Username</span></label>
-              <input type="text" required value={lichess} onChange={e => setLichess(e.target.value)} className="input input-bordered w-full" placeholder="MagnusCarlsen" />
+              <label className="label"><span className="label-text font-bold">Lichess Username</span></label>
+              <input type="text" value={lichess} onChange={e => { setLichess(e.target.value); setChesscom(""); setManualRating(""); }} className="input input-bordered w-full" placeholder="e.g. MagnusCarlsen" />
             </div>
+            
+            <div className="divider text-xs opacity-50">OR</div>
+            
             <div className="form-control w-full">
-              <label className="label"><span className="label-text">INSA Code</span></label>
+              <label className="label"><span className="label-text font-bold">Chess.com Username</span></label>
+              <input type="text" value={chesscom} onChange={e => { setChesscom(e.target.value); setLichess(""); setManualRating(""); }} className="input input-bordered w-full" placeholder="e.g. Hikaru" />
+            </div>
+
+            <div className="divider text-xs opacity-50">OR</div>
+
+            <div className="form-control w-full">
+              <label className="label"><span className="label-text font-bold">Manual Rating (No Account)</span></label>
+              <input type="number" value={manualRating} onChange={e => { setManualRating(e.target.value); setLichess(""); setChesscom(""); }} className="input input-bordered w-full" placeholder="e.g. 1500" />
+            </div>
+
+            <div className="divider"></div>
+
+            <div className="form-control w-full">
+              <label className="label"><span className="label-text font-bold text-primary">INSA Student Code</span></label>
               <input type="text" required value={insa} onChange={e => setInsa(e.target.value)} className="input input-bordered w-full" placeholder="e.g. INSA-1234" />
             </div>
             <button type="submit" className="btn btn-primary w-full mt-4" disabled={loading}>

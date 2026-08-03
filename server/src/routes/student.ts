@@ -27,32 +27,63 @@ studentRouter.use(async (req, res, next) => {
 
 studentRouter.post("/complete-profile", async (req, res) => {
     try {
-        const user = (req as any).user;
-        const { lichess_username, chesscom_username, insa_code, manual_rating } = req.body;
+        const authSession = await auth.api.getSession({ headers: req.headers });
+        if (!authSession?.user) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
 
-        // In a real scenario, we fetch from Lichess API here
-        let highestRating = manual_rating || 1000; 
+        const { lichess_username, chesscom_username, manual_rating, insa_code } = req.body;
+        if (!lichess_username && !chesscom_username && !manual_rating) {
+            return res.status(400).json({ error: "Must provide Lichess, Chess.com, or Manual Rating" });
+        }
+        if (!insa_code) {
+            return res.status(400).json({ error: "INSA code is required" });
+        }
+
+        let rating = 1000;
+        let finalLichess = lichess_username || null;
+        let finalChesscom = chesscom_username || null;
+
+        if (lichess_username) {
+            const resp = await fetch(`https://lichess.org/api/user/${lichess_username}`);
+            if (resp.ok) {
+                const data = await resp.json();
+                rating = data.perfs?.blitz?.rating || data.perfs?.rapid?.rating || 1000;
+            } else {
+                return res.status(400).json({ error: "Lichess account not found" });
+            }
+        } else if (chesscom_username) {
+            const resp = await fetch(`https://api.chess.com/pub/player/${chesscom_username}/stats`);
+            if (resp.ok) {
+                const data = await resp.json();
+                rating = data.chess_blitz?.last?.rating || data.chess_rapid?.last?.rating || 1000;
+            } else {
+                return res.status(400).json({ error: "Chess.com account not found" });
+            }
+        } else if (manual_rating) {
+            rating = manual_rating;
+        }
 
         const settingsRes = await db.execute(sql`SELECT advanced_threshold, mid_threshold FROM event_settings LIMIT 1`);
         const settings: any = settingsRes[0] || { advanced_threshold: 1200, mid_threshold: 600 };
 
-        let tier: "ADVANCED" | "MID" | "BEGINNER" = "BEGINNER";
-        if (highestRating >= settings.advanced_threshold) tier = "ADVANCED";
-        else if (highestRating >= settings.mid_threshold) tier = "MID";
+        let newTier: "ADVANCED" | "MID" | "BEGINNER" = "BEGINNER";
+        if (rating >= settings.advanced_threshold) newTier = "ADVANCED";
+        else if (rating >= settings.mid_threshold) newTier = "MID";
 
         await db.transaction(async (tx: any) => {
-            const newPlayer = await tx.insert(players).values({
-                email: user.email,
-                googleId: user.id,
-                realName: user.name,
-                lichessUsername: lichess_username,
-                chesscomUsername: chesscom_username,
+            const [newPlayer] = await tx.insert(players).values({
+                googleId: authSession.user.id,
+                email: authSession.user.email,
+                realName: authSession.user.name,
+                lichessUsername: finalLichess,
+                chesscomUsername: finalChesscom,
                 insaCode: insa_code,
-                currentRating: highestRating,
-                tier
+                currentRating: rating,
+                tier: newTier
             }).returning();
 
-            await assignPlayerToTeam(newPlayer[0].id, tier, tx);
+            await assignPlayerToTeam(newPlayer.id, newTier, tx);
         });
 
         res.json({ success: true });
