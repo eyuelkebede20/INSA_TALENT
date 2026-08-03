@@ -18,7 +18,9 @@ export const session = pgTable("session", {
 	expiresAt: timestamp('expiresAt').notNull(),
 	ipAddress: text('ipAddress'),
 	userAgent: text('userAgent'),
-	userId: varchar('userId', { length: 36 }).notNull().references(() => user.id)
+	userId: varchar('userId', { length: 36 }).notNull().references(() => user.id),
+	createdAt: timestamp('createdAt'),
+	updatedAt: timestamp('updatedAt')
 });
 
 export const account = pgTable("account", {
@@ -30,14 +32,18 @@ export const account = pgTable("account", {
 	refreshToken: text('refreshToken'),
 	idToken: text('idToken'),
 	expiresAt: timestamp('expiresAt'),
-	password: text('password')
+	password: text('password'),
+	createdAt: timestamp('createdAt'),
+	updatedAt: timestamp('updatedAt')
 });
 
 export const verification = pgTable("verification", {
 	id: varchar("id", { length: 36 }).primaryKey(),
 	identifier: text('identifier').notNull(),
 	value: text('value').notNull(),
-	expiresAt: timestamp('expiresAt').notNull()
+	expiresAt: timestamp('expiresAt').notNull(),
+	createdAt: timestamp('createdAt'),
+	updatedAt: timestamp('updatedAt')
 });
 
 export const eventSettings = pgTable('event_settings', {
