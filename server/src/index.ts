@@ -12,8 +12,20 @@ import { cronRouter } from "./routes/cron";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://insa-talent.vercel.app",
+  process.env.FRONTEND_URL || "https://insa-talent.vercel.app"
+];
+
 app.use(cors({
-  origin: process.env.VITE_API_BASE_URL?.replace('/api', '') || "http://localhost:5173",
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, allowedOrigins[1]); // Fallback to Vercel
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
