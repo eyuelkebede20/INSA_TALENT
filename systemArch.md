@@ -73,7 +73,7 @@ flowchart TD
 ### 3.2. Backend (API Layer)
 - **Runtime/Framework:** Node.js + Express + TypeScript.
 - **Authentication:**
-  - **Students:** Handled via Better Auth or Supabase Auth. Uses **Google OAuth** for primary identity and **Lichess OAuth** specifically to verify chess account ownership.
+  - **Students:** Handled via Better Auth or Supabase Auth. Uses **Google OAuth** for primary identity. Users manually input their Lichess/Chess.com usernames during onboarding, after which they are locked and can only be modified by a Superadmin.
   - **Admin:** Stateless JWTs via HttpOnly secure cookies. Prevents XSS attacks.
 - **Database Access:** Drizzle ORM ensures type safety between PostgreSQL schemas and TypeScript business logic.
 
@@ -128,5 +128,4 @@ Lichess has strict rate limits. Querying 300+ profiles simultaneously will resul
 - **Environment Variables:**
   - `DATABASE_URL`
   - `GOOGLE_OAUTH_CLIENT_ID` / `SECRET`
-  - `LICHESS_OAUTH_CLIENT_ID` / `SECRET`
   - `ADMIN_PASSWORD` & `JWT_SECRET`

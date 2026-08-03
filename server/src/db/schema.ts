@@ -1,7 +1,44 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, serial, varchar, boolean, integer, timestamp, uuid, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, boolean, integer, timestamp, uuid, pgEnum, text } from 'drizzle-orm/pg-core';
 
 export const tierEnum = pgEnum('tier', ['ADVANCED', 'MID', 'BEGINNER']);
+
+export const user = pgTable("user", {
+	id: varchar("id", { length: 36 }).primaryKey(),
+	name: text('name').notNull(),
+	email: text('email').notNull().unique(),
+	emailVerified: boolean('emailVerified').notNull(),
+	image: text('image'),
+	createdAt: timestamp('createdAt').notNull(),
+	updatedAt: timestamp('updatedAt').notNull()
+});
+
+export const session = pgTable("session", {
+	id: varchar("id", { length: 36 }).primaryKey(),
+	expiresAt: timestamp('expiresAt').notNull(),
+	ipAddress: text('ipAddress'),
+	userAgent: text('userAgent'),
+	userId: varchar('userId', { length: 36 }).notNull().references(() => user.id)
+});
+
+export const account = pgTable("account", {
+	id: varchar("id", { length: 36 }).primaryKey(),
+	accountId: text('accountId').notNull(),
+	providerId: text('providerId').notNull(),
+	userId: varchar('userId', { length: 36 }).notNull().references(() => user.id),
+	accessToken: text('accessToken'),
+	refreshToken: text('refreshToken'),
+	idToken: text('idToken'),
+	expiresAt: timestamp('expiresAt'),
+	password: text('password')
+});
+
+export const verification = pgTable("verification", {
+	id: varchar("id", { length: 36 }).primaryKey(),
+	identifier: text('identifier').notNull(),
+	value: text('value').notNull(),
+	expiresAt: timestamp('expiresAt').notNull()
+});
 
 export const eventSettings = pgTable('event_settings', {
   id: serial('id').primaryKey(),

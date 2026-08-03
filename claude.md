@@ -4,9 +4,9 @@ Source of truth for the INSA_TALENT chess event platform. Update this file whene
 ## 1. Product Summary
 A web app for an in-person chess learning event with 300+ students.
 
-**Auth:** Students sign in with Google OAuth to prevent identity spoofing, and must link their Lichess account via Lichess OAuth (to guarantee account ownership).
+**Auth:** Students sign in with Google OAuth to prevent identity spoofing.
 
-**Profile Completion:** After OAuth, users must provide their `insa_code` and an optional `chesscom_username`.
+**Profile Completion:** After OAuth, users must manually provide their `lichess_username`, `insa_code`, and an optional `chesscom_username`. Once these usernames are submitted, they are permanently locked for the student. Only a Superadmin can edit them later.
 
 **Grouping Logic:** Earliest Open Slot (FCFS-based). Students are instantly slotted into partial grids.
 
@@ -67,7 +67,7 @@ Lichess/Chess.com APIs (GET /api/user/:username)
 
 **Database:** PostgreSQL via Drizzle ORM (Neon / Supabase).
 
-**Authentication (Students):** Better Auth or Supabase Auth configured for **both** Google OAuth and Lichess OAuth.
+**Authentication (Students):** Better Auth or Supabase Auth configured for Google OAuth only.
 
 **Authentication (Admin):** Stateless — `ADMIN_PASSWORD` + `JWT_SECRET` in env vars. Password check → signed JWT → HttpOnly cookie middleware guards `/api/admin/*`.
 
@@ -172,7 +172,6 @@ async function assignPlayerToTeam(playerId: string, playerTier: string, tx: any)
 ## 6. API Endpoints
 **Auth**
 - `GET /api/auth/google` — Initiates Google OAuth.
-- `GET /api/auth/lichess` — Initiates Lichess OAuth (for verified usernames and ratings).
 - `POST /api/admin/login` — `{ password }` → Sets HttpOnly JWT cookie for Superadmin.
 
 **Students**
