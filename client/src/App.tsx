@@ -66,9 +66,26 @@ function StudentFlow() {
   const [lichess, setLichess] = useState("");
   const [chesscom, setChesscom] = useState("");
   const [manualRating, setManualRating] = useState("");
-  const [insa, setInsa] = useState("");
+  const [insaDigits, setInsaDigits] = useState(["", "", "", "", ""]);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleDigitChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+    const newDigits = [...insaDigits];
+    newDigits[index] = value.slice(-1);
+    setInsaDigits(newDigits);
+    
+    if (value && index < 4) {
+      document.getElementById(`digit-${index + 1}`)?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !insaDigits[index] && index > 0) {
+      document.getElementById(`digit-${index - 1}`)?.focus();
+    }
+  };
 
   if (isPending) return (
     <div className="flex justify-center mt-20 flex-col items-center gap-4">
@@ -103,6 +120,11 @@ function StudentFlow() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const insaStr = insaDigits.join("");
+    if (insaStr.length !== 5) {
+      setStatus("Please enter all 5 digits of your INSA code.");
+      return;
+    }
     setLoading(true);
     setStatus("Submitting...");
     try {
@@ -112,7 +134,7 @@ function StudentFlow() {
           lichess_username: lichess || undefined, 
           chesscom_username: chesscom || undefined,
           manual_rating: manualRating ? parseInt(manualRating) : undefined,
-          insa_code: `CTC-03942-26-${insa.replace(/^-+/, '')}` 
+          insa_code: `CTC-${insaStr}-26`
         })
       });
       setStatus("Success! You've been assigned to a team.");
@@ -152,9 +174,24 @@ function StudentFlow() {
 
             <div className="form-control w-full">
               <label className="label"><span className="label-text font-bold text-primary">INSA Student Code</span></label>
-              <div className="join w-full">
-                <span className="join-item btn bg-base-200 border-base-300 pointer-events-none">CTC-03942-26</span>
-                <input type="text" required value={insa} onChange={e => setInsa(e.target.value)} className="input input-bordered join-item w-full" placeholder="e.g. 1234" />
+              <div className="flex items-center gap-2 w-full font-mono">
+                <span className="font-bold whitespace-nowrap bg-base-200 px-3 py-3 rounded-lg border border-base-300">CTC-</span>
+                <div className="flex gap-1 flex-1">
+                  {insaDigits.map((digit, i) => (
+                    <input 
+                      key={i}
+                      id={`digit-${i}`}
+                      type="text" 
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit} 
+                      onChange={e => handleDigitChange(i, e.target.value)}
+                      onKeyDown={e => handleKeyDown(i, e)}
+                      className="input input-bordered w-full text-center px-0 font-bold text-lg focus:input-primary" 
+                    />
+                  ))}
+                </div>
+                <span className="font-bold whitespace-nowrap bg-base-200 px-3 py-3 rounded-lg border border-base-300">-26</span>
               </div>
             </div>
             <button type="submit" className="btn btn-primary w-full mt-4" disabled={loading}>
