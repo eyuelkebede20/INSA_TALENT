@@ -18,8 +18,8 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Better Auth interceptor
-app.all("/api/auth/*", toNodeHandler(auth));
+// Better Auth interceptor (Express 5 syntax)
+app.all("/api/auth/*catchall", toNodeHandler(auth));
 
 // Custom Routes
 app.use("/api/students", studentRouter);
