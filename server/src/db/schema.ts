@@ -86,8 +86,16 @@ export const playerDailyStats = pgTable('player_daily_stats', {
   recordedAt: timestamp('recorded_at').defaultNow().notNull(),
 });
 
+export const studentFeedbacks = pgTable('student_feedbacks', {
+  id: serial('id').primaryKey(),
+  playerId: uuid('player_id').notNull().references(() => players.id, { onDelete: 'cascade' }),
+  message: text('message').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const teamsRelations = relations(teams, ({ many }) => ({ players: many(players) }));
 export const playersRelations = relations(players, ({ one, many }) => ({
   team: one(teams, { fields: [players.teamId], references: [teams.id] }),
   dailyStats: many(playerDailyStats),
+  feedbacks: many(studentFeedbacks),
 }));

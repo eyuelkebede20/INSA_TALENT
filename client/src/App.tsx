@@ -69,6 +69,17 @@ function StudentFlow() {
   const [insaDigits, setInsaDigits] = useState(["", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [profile, setProfile] = useState<any>(null);
+  const [feedback, setFeedback] = useState("");
+  const [feedbackSending, setFeedbackSending] = useState(false);
+
+  useEffect(() => {
+    if (session) {
+      fetchApi("/students/me")
+        .then(data => setProfile(data.profile))
+        .catch(console.error);
+    }
+  }, [session]);
 
   const handleDigitChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
@@ -155,6 +166,65 @@ function StudentFlow() {
       setLoading(false);
     }
   };
+
+  const handleFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!feedback.trim()) return;
+    setFeedbackSending(true);
+    try {
+      await fetchApi("/students/feedback", {
+        method: "POST",
+        body: JSON.stringify({ message: feedback })
+      });
+      toast.success("Feedback sent successfully!");
+      setFeedback("");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send feedback");
+    } finally {
+      setFeedbackSending(false);
+    }
+  };
+
+  if (profile) {
+    return (
+      <div className="flex justify-center mt-10">
+        <div className="card w-full max-w-md bg-base-100 shadow-xl border border-base-300">
+          <div className="card-body">
+            <h2 className="card-title text-2xl font-bold text-success mb-2">Profile Complete ✓</h2>
+            <p className="text-base-content/70 mb-4">You are officially in the system!</p>
+            
+            <div className="bg-base-200 p-4 rounded-xl border border-base-300 space-y-2 mb-6">
+              <div className="flex justify-between">
+                <span className="font-bold opacity-60">Team</span>
+                <span className="font-bold text-lg">Team {profile.team_number || 'Pending'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-bold opacity-60">Tier</span>
+                <span className="font-bold">{profile.tier}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-bold opacity-60">Rating</span>
+                <span className="font-bold text-primary">{profile.current_rating}</span>
+              </div>
+            </div>
+
+            <div className="divider">Send Feedback</div>
+            <form onSubmit={handleFeedback} className="space-y-4">
+              <textarea 
+                className="textarea textarea-bordered w-full h-24" 
+                placeholder="Have an issue or suggestion? Send a message directly to the admins..."
+                value={feedback}
+                onChange={e => setFeedback(e.target.value)}
+              ></textarea>
+              <button type="submit" className="btn btn-secondary w-full" disabled={feedbackSending}>
+                {feedbackSending ? <span className="loading loading-spinner"></span> : "Submit Feedback"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center mt-10">

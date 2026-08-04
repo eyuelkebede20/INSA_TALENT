@@ -124,3 +124,18 @@ adminRouter.post("/settings", async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+adminRouter.get("/feedbacks", async (req, res) => {
+    try {
+        const feedbacks = await db.execute(sql`
+            SELECT f.id, f.message, f.created_at, p.real_name, p.tier, t.team_number
+            FROM student_feedbacks f
+            JOIN players p ON f.player_id = p.id
+            LEFT JOIN teams t ON p.team_id = t.id
+            ORDER BY f.created_at DESC
+        `);
+        res.json(feedbacks);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});

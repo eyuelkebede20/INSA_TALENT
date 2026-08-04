@@ -5,6 +5,7 @@ import { assignPlayerToTeam } from "../services/eos";
 import { sql } from "drizzle-orm";
 import { auth } from "../auth";
 import { fromNodeHeaders } from "better-auth/node";
+import { studentFeedbacks } from "../db/schema";
 
 export const studentRouter = Router();
 
@@ -118,6 +119,27 @@ studentRouter.get("/me", async (req, res) => {
             WHERE p.google_id = ${user.id}
         `);
         res.json({ profile: playerRes[0] || null });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+studentRouter.post("/feedback", async (req, res) => {
+    try {
+        const user = (req as any).user;
+        const { message } = req.body;
+        
+        if (!message) return res.status(400).json({ error: "Message is required" });
+
+        const playerRes = await db.execute(sql`SELECT id FROM players WHERE google_id = ${user.id}`);
+        if (!playerRes[0]) return res.status(403).json({ error: "Complete your profile first" });
+
+        await db.insert(studentFeedbacks).values({
+            playerId: playerRes[0].id,
+            message: message
+        });
+
+        res.json({ success: true });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }

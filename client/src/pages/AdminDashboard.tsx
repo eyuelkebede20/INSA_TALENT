@@ -4,14 +4,15 @@ import { toast } from 'sonner';
 
 export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [teams, setTeams] = useState<any[]>([]);
+  const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [settings, setSettings] = useState({ advanced: 1200, mid: 600 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchApi('/admin/teams').then((data) => {
-      setTeams(data);
-      setLoading(false);
-    });
+    Promise.all([
+      fetchApi('/admin/teams').then(setTeams),
+      fetchApi('/admin/feedbacks').then(setFeedbacks)
+    ]).then(() => setLoading(false));
   }, []);
 
   const handleReassign = async (playerId: string, teamId: number) => {
@@ -137,6 +138,31 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             <div className="text-center py-20 text-base-content/50">No teams found.</div>
           )}
         </div>
+      </div>
+
+      <div className="divider"></div>
+      
+      <div className="mb-20">
+        <h2 className="text-2xl font-bold mb-6">Student Feedbacks</h2>
+        {loading ? (
+          <div className="skeleton h-32 w-full"></div>
+        ) : feedbacks.length === 0 ? (
+          <div className="text-center py-10 text-base-content/50 bg-base-100 rounded-xl border border-base-300">No feedbacks yet.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {feedbacks.map((f: any) => (
+              <div key={f.id} className="card bg-base-100 shadow-xl border border-base-300">
+                <div className="card-body">
+                  <h3 className="card-title text-sm opacity-60 flex justify-between">
+                    <span>{f.real_name} (Team {f.team_number || 'None'})</span>
+                    <span>{new Date(f.created_at).toLocaleDateString()}</span>
+                  </h3>
+                  <p className="mt-2 font-medium">{f.message}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
