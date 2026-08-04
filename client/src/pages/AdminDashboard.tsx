@@ -143,7 +143,6 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 <div className="flex items-start gap-6 min-h-[400px]">
                   {teams.map((t: any) => {
                     const validMembers = t.members?.filter((m: any) => m) || [];
-                    const leaderId = validMembers.reduce((max: any, curr: any) => (curr.rating > (max?.rating || -1)) ? curr : max, null)?.id;
 
                     return (
                       <div key={t.id} className="card bg-base-100 shadow-xl border-t-4 border-t-primary w-80 shrink-0 self-start max-h-[80vh] flex flex-col">
@@ -173,11 +172,9 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                         <div>
                                           <p className="font-bold text-sm flex items-center gap-2">
                                             {m.name}
-                                            {m.id === leaderId && <span className="badge badge-accent badge-xs uppercase font-bold px-2 py-3 shadow-sm text-[10px]">Leader</span>}
                                           </p>
                                           <div className="flex items-center gap-2 mt-1">
                                             <div className={`w-2 h-2 rounded-full ${m.tier === 'ADVANCED' ? 'bg-secondary' : m.tier === 'MID' ? 'bg-accent' : 'bg-primary'}`}></div>
-                                            <span className="text-xs opacity-70">{m.tier}</span>
                                           </div>
                                         </div>
                                         <div className="flex flex-col items-end gap-1">

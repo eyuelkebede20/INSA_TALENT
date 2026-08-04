@@ -99,7 +99,6 @@ export default function PublicCanvas() {
                           <div className="space-y-3">
                             {(() => {
                               const validMembers = t.members?.filter((m: any) => m) || [];
-                              const leaderId = validMembers.reduce((max: any, curr: any) => (curr.rating > (max?.rating || -1)) ? curr : max, null)?.id;
                               
                               return validMembers.map((m: any, i: number) => (
                               <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-base-200 border border-base-300">
@@ -108,9 +107,7 @@ export default function PublicCanvas() {
                                   <div>
                                     <p className="text-sm font-bold flex items-center gap-2">
                                       {m.name}
-                                      {m.id === leaderId && <span className="badge badge-accent badge-xs font-bold uppercase" title="Team Leader">Leader</span>}
                                     </p>
-                                    <p className="text-xs text-base-content/60">{m.tier}</p>
                                   </div>
                                 </div>
                                 <div className="text-right">
