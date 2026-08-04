@@ -201,3 +201,17 @@ async function performNuclearRegroup(tx: any) {
 
 **Scheduled**
 - `POST /api/cron/sync-lichess-queue` — Triggers a batch job that sequentially pulls Lichess stats in chunks (with delays) to respect API rate limits. Writes to `player_daily_stats` when all chunks are completely resolved. Leadership is re-evaluated dynamically on the frontend/backend when these stats update.
+
+## 7. V1 Final Status & Key Technical Fixes (Hand-off to V2)
+All major V1 milestones have been completed and are running in production. When planning V2, please note the following architectural realities and late-stage V1 fixes:
+
+1. **Domain & CORS Topology:** The frontend was successfully migrated from `insa-talent.vercel.app` to `insa-aca.vercel.app`. However, the backend is **still hosted** at `insa-talent-1.onrender.com`. The Express CORS policy and `better-auth` configuration have been strictly updated to safely support cross-origin communication between the `insa-aca` frontend and the `insa-talent` backend.
+2. **UI & Badges (Minimalism):** We completely removed literal text badges for tiers ("ADVANCED", "MID", "BEGINNER") and literal "Leader" badges from the Canvas and Admin UI. Instead, the UI relies strictly on **color-coded dots** (`bg-secondary` for Advanced, `bg-accent` for Mid, `bg-primary` for Beginner) to keep the canvas clean.
+3. **Sorting Priorities:** Players rendered inside any team (Public Canvas or Admin Dashboard) are now strictly sorted on the frontend. Order of precedence: Tier (Advanced → Mid → Beginner), followed by Rating (Highest → Lowest).
+4. **Admin Dashboard (Finite Canvas):** The admin panel uses `@hello-pangea/dnd` to provide a drag-and-drop finite canvas for manually reassigning players across teams. It also houses the "Nuclear Regroup" button which triggers `/api/admin/regroup` to wipe and optimally re-sort the entire database using the EOS algorithm.
+5. **Hotfixes Applied:** 
+   - Addressed a Node crash on Render caused by an unused `checkAndLockTeam` import in `admin.ts`.
+   - Updated the GitHub Actions cron (`.github/workflows/cron.yml`) to correctly point to the live `insa-talent-1.onrender.com` backend URL.
+   - Reverted a misconfigured frontend API fallback that temporarily pointed to a non-existent `insa-aca-1.onrender.com` backend.
+
+All `tasks.md` items have been cleared. The codebase is stable, type-safe, and ready for V2 feature scoping (e.g., bracket management, Swiss-system pairing).
