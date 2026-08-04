@@ -98,7 +98,13 @@ export default function PublicCanvas() {
                           
                           <div className="space-y-3">
                             {(() => {
-                              const validMembers = t.members?.filter((m: any) => m) || [];
+                              const validMembers = (t.members?.filter((m: any) => m) || []).sort((a: any, b: any) => {
+                                const tierWeight: any = { ADVANCED: 3, MID: 2, BEGINNER: 1 };
+                                if (tierWeight[a.tier] !== tierWeight[b.tier]) {
+                                  return tierWeight[b.tier] - tierWeight[a.tier];
+                                }
+                                return b.rating - a.rating;
+                              });
                               
                               return validMembers.map((m: any, i: number) => (
                               <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-base-200 border border-base-300">

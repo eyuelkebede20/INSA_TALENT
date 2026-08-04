@@ -142,7 +142,13 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               <DragDropContext onDragEnd={handleDragEnd}>
                 <div className="flex items-start gap-6 min-h-[400px]">
                   {teams.map((t: any) => {
-                    const validMembers = t.members?.filter((m: any) => m) || [];
+                    const validMembers = (t.members?.filter((m: any) => m) || []).sort((a: any, b: any) => {
+                      const tierWeight: any = { ADVANCED: 3, MID: 2, BEGINNER: 1 };
+                      if (tierWeight[a.tier] !== tierWeight[b.tier]) {
+                        return tierWeight[b.tier] - tierWeight[a.tier];
+                      }
+                      return b.rating - a.rating;
+                    });
 
                     return (
                       <div key={t.id} className="card bg-base-100 shadow-xl border-t-4 border-t-primary w-80 shrink-0 self-start max-h-[80vh] flex flex-col">
