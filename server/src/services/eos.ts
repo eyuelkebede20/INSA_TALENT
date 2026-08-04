@@ -3,7 +3,7 @@ import { players, teams } from "../db/schema";
 import { eq, sql, desc } from "drizzle-orm";
 
 export async function assignPlayerToTeam(playerId: string, playerTier: "ADVANCED" | "MID" | "BEGINNER", tx: any = db) {
-    const maxCapacity = playerTier === 'ADVANCED' ? 1 : playerTier === 'MID' ? 2 : 4;
+    const maxCapacity = playerTier === 'ADVANCED' ? 1 : playerTier === 'MID' ? 2 : 8;
 
     // 1. Find the earliest unlocked team with room for this tier
     const targetTeam = await tx.execute(sql`
@@ -33,19 +33,4 @@ export async function assignPlayerToTeam(playerId: string, playerTier: "ADVANCED
 
     // 3. Assign the player
     await tx.update(players).set({ teamId }).where(eq(players.id, playerId));
-
-    // 4. Lock the team if it just reached exactly 7 members
-    await checkAndLockTeam(teamId, tx);
-}
-
-export async function checkAndLockTeam(teamId: number, tx: any = db) {
-    const teamPlayers = await tx.execute(sql`SELECT tier FROM players WHERE team_id = ${teamId}`);
-    
-    const advCount = teamPlayers.filter((p: any) => p.tier === 'ADVANCED').length;
-    const midCount = teamPlayers.filter((p: any) => p.tier === 'MID').length;
-    const begCount = teamPlayers.filter((p: any) => p.tier === 'BEGINNER').length;
-
-    if (advCount === 1 && midCount === 2 && begCount === 4) {
-        await tx.update(teams).set({ isLocked: true }).where(eq(teams.id, teamId));
-    }
 }

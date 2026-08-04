@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "../db";
 import { players, teams, eventSettings } from "../db/schema";
 import { sql, eq } from "drizzle-orm";
-import { deletePlayerAndBackfill, cascadeBackfill, cleanupEmptyTeams } from "../services/admin";
+import { deletePlayer } from "../services/admin";
 import { assignPlayerToTeam } from "../services/eos";
 import jwt from "jsonwebtoken";
 
@@ -68,7 +68,7 @@ adminRouter.get("/teams", async (req, res) => {
 
 adminRouter.delete("/players/:id", async (req, res) => {
     try {
-        await deletePlayerAndBackfill(req.params.id);
+        await deletePlayer(req.params.id);
         res.json({ success: true });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
@@ -109,16 +109,31 @@ adminRouter.post("/settings", async (req, res) => {
                 else if (p.current_rating >= mid_threshold) newTier = "MID";
 
                 if (newTier !== p.tier) {
-                    await tx.update(players).set({ teamId: null, tier: newTier }).where(eq(players.id, p.id));
-                    if (p.team_id) {
-                        await cascadeBackfill(p.team_id, p.tier, tx);
-                    }
-                    await assignPlayerToTeam(p.id, newTier, tx);
+                    await tx.update(players).set({ tier: newTier }).where(eq(players.id, p.id));
                 }
             }
-            await cleanupEmptyTeams(tx);
         });
         
+        res.json({ success: true });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+adminRouter.post("/regroup", async (req, res) => {
+    try {
+        await db.transaction(async (tx: any) => {
+            // 1. Unassign all players
+            await tx.update(players).set({ teamId: null });
+            
+            // 2. Fetch all players sorted by rating descending
+            const allPlayers = await tx.select().from(players).orderBy(sql`${players.currentRating} DESC`);
+            
+            // 3. Re-run assignment logic for every single player
+            for (const player of allPlayers) {
+                await assignPlayerToTeam(player.id, player.tier, tx);
+            }
+        });
         res.json({ success: true });
     } catch (error: any) {
         res.status(500).json({ error: error.message });

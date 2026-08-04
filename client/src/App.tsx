@@ -66,6 +66,7 @@ function StudentFlow() {
   const [lichess, setLichess] = useState("");
   const [chesscom, setChesscom] = useState("");
   const [manualRating, setManualRating] = useState("");
+  const [groupNumber, setGroupNumber] = useState("");
   const [insaDigits, setInsaDigits] = useState(["", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -131,6 +132,10 @@ function StudentFlow() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!groupNumber) {
+      toast.error("Please select a group number.");
+      return;
+    }
     const insaStr = insaDigits.join("");
     if (insaStr.length !== 4) {
       toast.error("Please enter all 4 digits of your INSA code.");
@@ -151,7 +156,8 @@ function StudentFlow() {
           lichess_username: lichess || undefined, 
           chesscom_username: chesscom || undefined,
           manual_rating: manualRating ? parseInt(manualRating) : undefined,
-          insa_code: `CTC-${insaStr}-26`
+          insa_code: `CTC-${insaStr}-26`,
+          group_number: parseInt(groupNumber)
         })
       });
       clearInterval(progressInterval);
@@ -234,6 +240,13 @@ function StudentFlow() {
           <p className="text-base-content/70 mb-4">Please complete your profile to be grouped.</p>
           
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="form-control w-full">
+              <label className="label"><span className="label-text font-bold text-primary">Target Group Number</span></label>
+              <input type="number" required value={groupNumber} onChange={e => setGroupNumber(e.target.value)} className="input input-bordered input-primary w-full" placeholder="e.g. 1" />
+            </div>
+
+            <div className="divider"></div>
+
             <p className="text-xs font-bold text-base-content/50 uppercase tracking-widest mb-2 mt-4">Platform Details (Provide any that apply)</p>
             
             <div className="form-control w-full">

@@ -20,8 +20,8 @@ app.use(helmet({
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://insa-talent.vercel.app",
-  process.env.FRONTEND_URL || "https://insa-talent.vercel.app"
+  "https://insa-aca.vercel.app",
+  process.env.FRONTEND_URL || "https://insa-aca.vercel.app"
 ];
 
 app.use(cors({

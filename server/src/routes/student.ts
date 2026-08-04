@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { players } from "../db/schema";
-import { assignPlayerToTeam } from "../services/eos";
+import { players, teams } from "../db/schema";
 import { sql } from "drizzle-orm";
 import { auth } from "../auth";
 import { fromNodeHeaders } from "better-auth/node";
@@ -33,7 +32,10 @@ studentRouter.post("/complete-profile", async (req, res) => {
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        const { lichess_username, chesscom_username, manual_rating, insa_code } = req.body;
+        const { lichess_username, chesscom_username, manual_rating, insa_code, group_number } = req.body;
+        if (!group_number) {
+            return res.status(400).json({ error: "Group number is required" });
+        }
         if (!lichess_username && !chesscom_username && !manual_rating) {
             return res.status(400).json({ error: "Must provide Lichess, Chess.com, or Manual Rating" });
         }
@@ -89,7 +91,18 @@ studentRouter.post("/complete-profile", async (req, res) => {
         else if (rating >= settings.mid_threshold) newTier = "MID";
 
         await db.transaction(async (tx: any) => {
-            const [newPlayer] = await tx.insert(players).values({
+            let teamRes = await tx.execute(sql`SELECT id FROM teams WHERE team_number = ${group_number}`);
+            let teamId = teamRes[0]?.id;
+            
+            if (!teamId) {
+                const newTeam = await tx.insert(teams).values({
+                    teamNumber: group_number,
+                    isLocked: false
+                }).returning();
+                teamId = newTeam[0].id;
+            }
+
+            await tx.insert(players).values({
                 googleId: authSession.user.id,
                 email: authSession.user.email,
                 realName: authSession.user.name,
@@ -97,10 +110,9 @@ studentRouter.post("/complete-profile", async (req, res) => {
                 chesscomUsername: finalChesscom,
                 insaCode: insa_code,
                 currentRating: rating,
-                tier: newTier
-            }).returning();
-
-            await assignPlayerToTeam(newPlayer.id, newTier, tx);
+                tier: newTier,
+                teamId: teamId
+            });
         });
 
         res.json({ success: true });

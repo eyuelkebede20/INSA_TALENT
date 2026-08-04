@@ -97,12 +97,19 @@ export default function PublicCanvas() {
                           </div>
                           
                           <div className="space-y-3">
-                            {t.members?.filter((m: any) => m).map((m: any, i: number) => (
+                            {(() => {
+                              const validMembers = t.members?.filter((m: any) => m) || [];
+                              const leaderId = validMembers.reduce((max: any, curr: any) => (curr.rating > (max?.rating || -1)) ? curr : max, null)?.id;
+                              
+                              return validMembers.map((m: any, i: number) => (
                               <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-base-200 border border-base-300">
                                 <div className="flex items-center gap-3">
                                   <div className={`w-3 h-3 rounded-full shadow-sm ${m.tier === 'ADVANCED' ? 'bg-secondary' : m.tier === 'MID' ? 'bg-accent' : 'bg-primary'}`}></div>
                                   <div>
-                                    <p className="text-sm font-bold">{m.name}</p>
+                                    <p className="text-sm font-bold flex items-center gap-2">
+                                      {m.name}
+                                      {m.id === leaderId && <span className="badge badge-accent badge-xs font-bold uppercase" title="Team Leader">Leader</span>}
+                                    </p>
                                     <p className="text-xs text-base-content/60">{m.tier}</p>
                                   </div>
                                 </div>
@@ -110,7 +117,8 @@ export default function PublicCanvas() {
                                   <p className="text-sm font-bold text-primary">{m.rating}</p>
                                 </div>
                               </div>
-                            ))}
+                              ));
+                            })()}
                             
                             {!t.members || t.members.filter((m: any) => m).length === 0 ? (
                               <div className="text-center py-6 text-base-content/40 text-sm font-medium">No members yet.</div>
