@@ -6,11 +6,11 @@ A web app for an in-person chess learning event with 300+ students.
 
 **Auth:** Students sign in with Google OAuth to prevent identity spoofing.
 
-**Profile Completion:** After OAuth, users must manually provide their `lichess_username`, `insa_code`, and an optional `chesscom_username`. Once these usernames are submitted, they are permanently locked for the student. Only a Superadmin can edit them later.
+**Profile Completion:** After OAuth, users provide their `lichess_username`, 4-digit INSA ID (`CTC-XXXX-26` layout), and an optional `chesscom_username`. Once these usernames are submitted, they are permanently locked for the student. Only a Superadmin can edit them later.
 
 **Grouping Logic:** Earliest Open Slot (FCFS-based). Students are instantly slotted into partial grids.
 
-**Team Composition:** Exactly 7 players (1 Advanced, 2 Mid, 4 Beginner). Once a team reaches this exact ratio, it locks.
+**Team Composition:** Exactly 7 players (1 Advanced, 2 Mid, 4 Beginner). Once a team reaches this exact ratio, it locks. If a team drops a player, a full recursive diffusion backfill pulls replacements down from higher teams.
 
 **Leaderboards (Refreshed via scheduled syncs):**
 - **Individual Student Leaderboard** — Ranks individual students (e.g., by individual net wins or rating progression).
@@ -20,9 +20,10 @@ A web app for an in-person chess learning event with 300+ students.
 
 **Superadmin Dashboard:**
 - Drag-and-drop to rebalance or manually assign players.
-- Admin can update event settings (e.g., lower the Advanced threshold from 1200 to 1000).
+- Admin can update event settings (e.g., lower the Advanced threshold from 1200 to 1000). Doing so triggers a massive recalculation across ALL players, forcing tier updates and running diffusion backfills on the fly.
 - Admin is the only entity that can modify a locked team via a 1-to-1 swap.
-- Admin can delete a user (e.g., if they used a wrong account). If a user is deleted from a locked team, the system automatically triggers a cascade backfill, taking a player from the next available team to fill the spot and re-lock the team.
+- Admin can delete a user (e.g., if they used a wrong account).
+- Empty ghost teams are actively garbage-collected from the database.
 
 **Explicitly out of scope for Phase 1 (v2 candidate):** League/bracket management, Swiss-system pairing, match trees, board-order (1v1..7v7) match scoring.
 
@@ -37,11 +38,11 @@ A web app for an in-person chess learning event with 300+ students.
 
 **Manual Fallback:** If rating APIs fail during signup, the user can manually input their rating. The scheduled cron job will eventually overwrite this with the real API data. If the correction breaks a team's ratio, the backend will leave the locked team as-is. The admin must manually fix it.
 
-**Locking Mechanism & Cascade Backfills:** 
-- The moment a team hits 7 members (1 Adv, 2 Mid, 4 Beg), `is_locked` becomes true. 
-- If the Superadmin deletes a player from a locked team, the system automatically searches the subsequent unlocked teams for a player of the same tier, moves them up to the incomplete team, and re-locks it.
+**Locking Mechanism & Cascade Backfills (Diffusion Model):** 
+- The moment a team hits 7 members (1 Adv, 2 Mid, 4 Beg), `is_locked` becomes true, glowing green on the UI. 
+- If a player is removed from ANY team (or drops a tier), a **recursive diffusion backfill** triggers. The system scans all higher-numbered teams for the oldest player of the missing tier, rips them down into the gap, and then recursively triggers the backfill on the team that just lost *that* player until the gap bubbles entirely out of the ecosystem.
 
-**Public Canvas:** An unauthenticated page where students can pan/zoom to find their team number. Sensitive data (`insa_code`, email) must be omitted from this public endpoint.
+**Public Canvas:** An unauthenticated infinite workspace where students can pan/zoom to find their team. They can search by Name, Username, or INSA ID. The canvas will automatically zoom and center on a player if the search narrows to exactly one result.
 
 ## 3. Architecture
 ```plaintext
@@ -61,7 +62,8 @@ Lichess/Chess.com APIs (GET /api/user/:username)
 
 **Frontend:** React (Vite) + Tailwind + motion/react (for layout animations). 
 - **State Management:** React Query for data fetching and caching, Zustand for global UI state.
-- **Exporting:** `html2canvas` or `dom-to-image` to export the Leaderboard to a shareable PNG.
+- **Exporting:** `html-to-image` for perfectly crisp PNG exports of the Leaderboard (replacing buggy `html2canvas`).
+- **Error Handling**: `sonner` is used globally for rich, non-blocking toast notifications.
 
 **Backend:** Node.js + Express + TypeScript, deployed on Render.
 
@@ -179,9 +181,9 @@ async function assignPlayerToTeam(playerId: string, playerTier: string, tx: any)
 - `GET /api/students/me` — Returns session user profile and current `team_number`.
 
 **Canvas & Leaderboards (Public)**
-- `GET /api/canvas` — Returns all teams and basic player info (name, tier, rating). Strips email and `insa_code`.
-- `GET /api/leaderboard/students` — Ranked individual students (by rating or net wins).
-- `GET /api/leaderboard/teams/rating` — Ranked teams by summed rating.
+- `GET /api/canvas` — Returns all teams and basic player info (name, tier, rating, insa_code). Strips email.
+- `GET /api/leaderboard/students` — Ranked individual students, paginated UI (10/page) with deep search filtering.
+- `GET /api/leaderboard/teams/rating` — Ranked teams by summed rating or daily delta.
 - `GET /api/leaderboard/teams/net-wins` — Ranked teams by `(wins_now - wins_prev) - (losses_now - losses_prev)`.
 
 **Superadmin (Requires JWT Cookie)**
