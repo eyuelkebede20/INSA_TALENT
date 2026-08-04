@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react';
 import { fetchApi } from '../lib/api';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
+import { toast } from 'sonner';
 
 export default function Leaderboards() {
   const [students, setStudents] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Search & Pagination States
+  const [studentSearch, setStudentSearch] = useState('');
+  const [studentPage, setStudentPage] = useState(1);
+  const [teamSearch, setTeamSearch] = useState('');
+  const [teamPage, setTeamPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   
   useEffect(() => {
     Promise.all([
@@ -18,24 +26,55 @@ export default function Leaderboards() {
     const el = document.getElementById(id);
     if (!el) return;
     
-    const theme = document.documentElement.getAttribute('data-theme');
-    const bgColor = theme === 'light' ? '#ffffff' : '#1d232a';
-
-    const canvas = await html2canvas(el, { backgroundColor: bgColor, scale: 2 });
-    const link = document.createElement('a');
-    link.download = `${name}.png`;
-    link.href = canvas.toDataURL();
-    link.click();
+    try {
+      const theme = document.documentElement.getAttribute('data-theme');
+      const bgColor = theme === 'light' ? '#ffffff' : '#1d232a';
+      
+      const dataUrl = await toPng(el, { backgroundColor: bgColor, style: { padding: '20px' } });
+      const link = document.createElement('a');
+      link.download = `${name}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("Leaderboard exported successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to export image.");
+    }
   };
+
+  // Filtered & Paginated Data
+  const filteredStudents = students.filter(s => 
+    s.real_name.toLowerCase().includes(studentSearch.toLowerCase()) || 
+    s.lichess_username?.toLowerCase().includes(studentSearch.toLowerCase()) ||
+    s.insa_code?.toLowerCase().includes(studentSearch.toLowerCase())
+  );
+  const paginatedStudents = filteredStudents.slice((studentPage - 1) * ITEMS_PER_PAGE, studentPage * ITEMS_PER_PAGE);
+  const totalStudentPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
+
+  const filteredTeams = teams.filter(t => 
+    t.team_number.toString().includes(teamSearch) ||
+    `team ${t.team_number}`.includes(teamSearch.toLowerCase())
+  );
+  const paginatedTeams = filteredTeams.slice((teamPage - 1) * ITEMS_PER_PAGE, teamPage * ITEMS_PER_PAGE);
+  const totalTeamPages = Math.ceil(filteredTeams.length / ITEMS_PER_PAGE);
 
   return (
     <div className="space-y-12">
       
       {/* Students */}
       <div>
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <h2 className="text-3xl font-bold">Top Students</h2>
-          <button onClick={() => exportAsImage('student-board', 'insa-top-students')} className="btn btn-primary btn-sm">Export PNG</button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <input 
+              type="text" 
+              placeholder="Search by name, user, or ID..." 
+              value={studentSearch} 
+              onChange={e => { setStudentSearch(e.target.value); setStudentPage(1); }} 
+              className="input input-bordered input-sm flex-1 sm:w-64"
+            />
+            <button onClick={() => exportAsImage('student-board', 'insa-top-students')} className="btn btn-primary btn-sm whitespace-nowrap">Export PNG</button>
+          </div>
         </div>
         
         {loading ? (
@@ -46,7 +85,7 @@ export default function Leaderboards() {
             </div>
           </div>
         ) : (
-          <div id="student-board" className="card bg-base-100 shadow-xl border-t-4 border-t-primary p-8 rounded-2xl">
+          <div id="student-board" className="card bg-base-100 shadow-xl border-t-4 border-t-primary p-8 rounded-2xl overflow-visible">
             <h3 className="text-2xl font-bold mb-6 tracking-tighter">INSA<span className="text-primary">TALENT</span> Leaderboard</h3>
             <div className="overflow-x-auto">
               <table className="table w-full">
@@ -59,39 +98,60 @@ export default function Leaderboards() {
                   </tr>
                 </thead>
                 <tbody>
-                  {students.map((s: any, i) => (
-                    <tr key={i} className="hover">
-                      <td className="font-bold text-lg">
-                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
-                      </td>
-                      <td className="font-medium text-base">
-                        {s.real_name} <span className="text-base-content/50 text-xs ml-2">({s.lichess_username})</span>
-                      </td>
-                      <td>
-                        <div className={`badge badge-sm font-semibold p-2 ${s.tier === 'ADVANCED' ? 'badge-secondary' : s.tier === 'MID' ? 'badge-accent' : 'badge-primary'}`}>
-                          {s.tier}
-                        </div>
-                      </td>
-                      <td className="text-right font-bold text-secondary text-lg">{s.current_rating}</td>
-                    </tr>
-                  ))}
-                  {students.length === 0 && (
+                  {paginatedStudents.map((s: any, i) => {
+                    const actualRank = (studentPage - 1) * ITEMS_PER_PAGE + i;
+                    return (
+                      <tr key={i} className="hover">
+                        <td className="font-bold text-lg">
+                          {actualRank === 0 ? '🥇' : actualRank === 1 ? '🥈' : actualRank === 2 ? '🥉' : `#${actualRank + 1}`}
+                        </td>
+                        <td className="font-medium text-base">
+                          {s.real_name} <span className="text-base-content/50 text-xs ml-2">({s.lichess_username})</span>
+                        </td>
+                        <td>
+                          <div className={`badge badge-sm font-semibold p-2 ${s.tier === 'ADVANCED' ? 'badge-secondary' : s.tier === 'MID' ? 'badge-accent' : 'badge-primary'}`}>
+                            {s.tier}
+                          </div>
+                        </td>
+                        <td className="text-right font-bold text-secondary text-lg">{s.current_rating}</td>
+                      </tr>
+                    );
+                  })}
+                  {filteredStudents.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="py-10 text-center text-base-content/50">No students found.</td>
+                      <td colSpan={4} className="py-10 text-center text-base-content/50">No students match your search.</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
+            
+            {/* Pagination Controls */}
+            {totalStudentPages > 1 && (
+              <div className="flex justify-center mt-6 gap-2" data-html2canvas-ignore>
+                <button className="btn btn-sm" disabled={studentPage === 1} onClick={() => setStudentPage(p => p - 1)}>«</button>
+                <span className="flex items-center text-sm px-2 font-bold opacity-60">Page {studentPage} of {totalStudentPages}</span>
+                <button className="btn btn-sm" disabled={studentPage === totalStudentPages} onClick={() => setStudentPage(p => p + 1)}>»</button>
+              </div>
+            )}
           </div>
         )}
       </div>
       
       {/* Teams */}
       <div>
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <h2 className="text-3xl font-bold">Top Teams</h2>
-          <button onClick={() => exportAsImage('team-board', 'insa-top-teams')} className="btn btn-secondary btn-sm">Export PNG</button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <input 
+              type="text" 
+              placeholder="Search team number..." 
+              value={teamSearch} 
+              onChange={e => { setTeamSearch(e.target.value); setTeamPage(1); }} 
+              className="input input-bordered input-sm flex-1 sm:w-48"
+            />
+            <button onClick={() => exportAsImage('team-board', 'insa-top-teams')} className="btn btn-secondary btn-sm whitespace-nowrap">Export PNG</button>
+          </div>
         </div>
         
         {loading ? (
@@ -102,7 +162,7 @@ export default function Leaderboards() {
             </div>
           </div>
         ) : (
-          <div id="team-board" className="card bg-base-100 shadow-xl border-t-4 border-t-secondary p-8 rounded-2xl">
+          <div id="team-board" className="card bg-base-100 shadow-xl border-t-4 border-t-secondary p-8 rounded-2xl overflow-visible">
             <h3 className="text-2xl font-bold mb-6 tracking-tighter">INSA<span className="text-secondary">TALENT</span> Team Rankings</h3>
             <div className="overflow-x-auto">
               <table className="table w-full">
@@ -114,23 +174,35 @@ export default function Leaderboards() {
                   </tr>
                 </thead>
                 <tbody>
-                  {teams.map((t: any, i) => (
-                    <tr key={i} className="hover">
-                      <td className="font-bold text-lg">
-                        {i === 0 ? '👑' : `#${i + 1}`}
-                      </td>
-                      <td className="font-medium text-base">Team {t.team_number}</td>
-                      <td className="text-right font-bold text-primary text-lg">{t.total_rating}</td>
-                    </tr>
-                  ))}
-                  {teams.length === 0 && (
+                  {paginatedTeams.map((t: any, i) => {
+                    const actualRank = (teamPage - 1) * ITEMS_PER_PAGE + i;
+                    return (
+                      <tr key={i} className="hover">
+                        <td className="font-bold text-lg">
+                          {actualRank === 0 ? '👑' : `#${actualRank + 1}`}
+                        </td>
+                        <td className="font-medium text-base">Team {t.team_number}</td>
+                        <td className="text-right font-bold text-primary text-lg">{t.total_rating}</td>
+                      </tr>
+                    );
+                  })}
+                  {filteredTeams.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="py-10 text-center text-base-content/50">No teams found.</td>
+                      <td colSpan={3} className="py-10 text-center text-base-content/50">No teams match your search.</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
+            
+            {/* Pagination Controls */}
+            {totalTeamPages > 1 && (
+              <div className="flex justify-center mt-6 gap-2" data-html2canvas-ignore>
+                <button className="btn btn-sm" disabled={teamPage === 1} onClick={() => setTeamPage(p => p - 1)}>«</button>
+                <span className="flex items-center text-sm px-2 font-bold opacity-60">Page {teamPage} of {totalTeamPages}</span>
+                <button className="btn btn-sm" disabled={teamPage === totalTeamPages} onClick={() => setTeamPage(p => p + 1)}>»</button>
+              </div>
+            )}
           </div>
         )}
       </div>
