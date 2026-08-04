@@ -1,7 +1,6 @@
 import { db } from "../db";
 import { players, teams, eventSettings } from "../db/schema";
 import { eq, sql } from "drizzle-orm";
-import { checkAndLockTeam } from "./eos";
 
 
 
