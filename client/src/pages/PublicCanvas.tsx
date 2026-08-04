@@ -39,7 +39,7 @@ export default function PublicCanvas() {
   });
 
   return (
-    <div className="fixed inset-0 top-[64px] z-40 bg-base-200 flex flex-col overflow-hidden">
+    <div className="absolute inset-0 z-40 bg-base-200 flex flex-col overflow-hidden">
       <div className="p-4 z-50 absolute top-0 left-0 right-0 flex justify-center pointer-events-none">
         <div className="w-full max-w-lg relative pointer-events-auto shadow-2xl rounded-lg">
           <input 

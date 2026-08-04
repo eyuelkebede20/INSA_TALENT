@@ -13,7 +13,8 @@ export default function Leaderboards() {
   const [studentPage, setStudentPage] = useState(1);
   const [teamSearch, setTeamSearch] = useState('');
   const [teamPage, setTeamPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
+  const [isExporting, setIsExporting] = useState(false);
+  const ITEMS_PER_PAGE = isExporting ? 10000 : 10;
   
   useEffect(() => {
     Promise.all([
@@ -23,23 +24,34 @@ export default function Leaderboards() {
   }, []);
 
   const exportAsImage = async (id: string, name: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
+    setIsExporting(true);
+    toast.info("Preparing full leaderboard for export...", { id: 'export' });
     
-    try {
-      const theme = document.documentElement.getAttribute('data-theme');
-      const bgColor = theme === 'light' ? '#ffffff' : '#1d232a';
+    // Give DOM time to un-paginate
+    setTimeout(async () => {
+      const el = document.getElementById(id);
+      if (!el) {
+        setIsExporting(false);
+        return;
+      }
       
-      const dataUrl = await toPng(el, { backgroundColor: bgColor, style: { padding: '20px' } });
-      const link = document.createElement('a');
-      link.download = `${name}.png`;
-      link.href = dataUrl;
-      link.click();
-      toast.success("Leaderboard exported successfully!");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to export image.");
-    }
+      try {
+        const theme = document.documentElement.getAttribute('data-theme');
+        const bgColor = theme === 'light' ? '#ffffff' : '#1d232a';
+        
+        const dataUrl = await toPng(el, { backgroundColor: bgColor, style: { padding: '20px' } });
+        const link = document.createElement('a');
+        link.download = `${name}.png`;
+        link.href = dataUrl;
+        link.click();
+        toast.success("Leaderboard exported successfully!", { id: 'export' });
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to export image.", { id: 'export' });
+      } finally {
+        setIsExporting(false);
+      }
+    }, 500); // 500ms for React to render the full list
   };
 
   // Filtered & Paginated Data
@@ -127,7 +139,7 @@ export default function Leaderboards() {
             </div>
             
             {/* Pagination Controls */}
-            {totalStudentPages > 1 && (
+            {totalStudentPages > 1 && !isExporting && (
               <div className="flex justify-center mt-6 gap-2" data-html2canvas-ignore>
                 <button className="btn btn-sm" disabled={studentPage === 1} onClick={() => setStudentPage(p => p - 1)}>«</button>
                 <span className="flex items-center text-sm px-2 font-bold opacity-60">Page {studentPage} of {totalStudentPages}</span>
@@ -196,7 +208,7 @@ export default function Leaderboards() {
             </div>
             
             {/* Pagination Controls */}
-            {totalTeamPages > 1 && (
+            {totalTeamPages > 1 && !isExporting && (
               <div className="flex justify-center mt-6 gap-2" data-html2canvas-ignore>
                 <button className="btn btn-sm" disabled={teamPage === 1} onClick={() => setTeamPage(p => p - 1)}>«</button>
                 <span className="flex items-center text-sm px-2 font-bold opacity-60">Page {teamPage} of {totalTeamPages}</span>

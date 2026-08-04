@@ -68,6 +68,7 @@ function StudentFlow() {
   const [manualRating, setManualRating] = useState("");
   const [insaDigits, setInsaDigits] = useState(["", "", "", ""]);
   const [loading, setLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   const handleDigitChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
@@ -125,6 +126,13 @@ function StudentFlow() {
       return;
     }
     setLoading(true);
+    setLoadingProgress(0);
+    
+    // Simulate progress while waiting for API
+    const progressInterval = setInterval(() => {
+      setLoadingProgress(p => p >= 90 ? 90 : p + Math.random() * 15);
+    }, 500);
+
     try {
       await fetchApi("/students/complete-profile", {
         method: "POST",
@@ -135,13 +143,15 @@ function StudentFlow() {
           insa_code: `CTC-${insaStr}-26`
         })
       });
+      clearInterval(progressInterval);
+      setLoadingProgress(100);
       toast.success("Success! You've been assigned to a team.");
       setTimeout(() => {
         window.location.href = "/";
       }, 1500);
     } catch (err: any) {
+      clearInterval(progressInterval);
       toast.error(err.message || "Failed to complete profile");
-    } finally {
       setLoading(false);
     }
   };
@@ -195,9 +205,20 @@ function StudentFlow() {
                 <span className="font-bold whitespace-nowrap bg-base-200 px-3 py-3 rounded-lg border border-base-300">-26</span>
               </div>
             </div>
-            <button type="submit" className="btn btn-primary w-full mt-4" disabled={loading}>
-              {loading ? <span className="loading loading-spinner"></span> : "Complete Profile"}
-            </button>
+            {loading ? (
+              <div className="mt-6 flex flex-col items-center gap-2 bg-base-200 p-4 rounded-xl border border-base-300">
+                <span className="loading loading-spinner text-primary"></span>
+                <p className="text-sm font-bold animate-pulse text-center">Processing your profile...</p>
+                <p className="text-xs text-base-content/60 text-center px-4">
+                  Please wait in line. If the server is congested, this could take up to 10 seconds. Do not refresh the page.
+                </p>
+                <progress className="progress progress-primary w-full mt-2" value={loadingProgress} max="100"></progress>
+              </div>
+            ) : (
+              <button type="submit" className="btn btn-primary w-full mt-4">
+                Complete Profile
+              </button>
+            )}
           </form>
         </div>
       </div>
@@ -219,9 +240,9 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-base-200 font-sans pb-20">
+    <div className="h-screen w-screen flex flex-col bg-base-200 font-sans overflow-hidden">
       <Toaster position="top-center" richColors />
-      <div className="navbar bg-base-100 shadow-sm sticky top-0 z-50 border-b border-base-300 px-2 sm:px-6">
+      <div className="navbar bg-base-100 shadow-sm flex-none z-50 border-b border-base-300 px-2 sm:px-6">
         <div className="flex-1">
           <Link to="/" className="text-xl font-bold tracking-tighter">INSA<span className="text-primary">TALENT</span></Link>
         </div>
@@ -273,7 +294,7 @@ function App() {
         </div>
       </div>
       
-      <main className="mx-auto w-full h-[calc(100vh-65px)] relative">
+      <main className="flex-1 w-full relative overflow-y-auto pb-20">
         <Routes>
           <Route path="/" element={<PublicCanvas />} />
           <Route path="/leaderboards" element={<div className="max-w-7xl mx-auto px-4 mt-8 h-full"><Leaderboards /></div>} />
