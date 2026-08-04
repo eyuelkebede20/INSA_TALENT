@@ -12,5 +12,5 @@ jobs:
     steps:
       - name: Trigger Lichess Sync API
         run: |
-          curl -X POST https://insa-aca-1.onrender.com/api/cron/sync-lichess \
+          curl -X POST https://insa-talent-1.onrender.com/api/cron/sync-lichess \
           -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
