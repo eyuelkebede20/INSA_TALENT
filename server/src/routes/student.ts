@@ -48,32 +48,45 @@ studentRouter.post("/complete-profile", async (req, res) => {
         let finalChesscom = chesscom_username || null;
         let foundRating = false;
 
-        if (lichess_username && !foundRating) {
+        let lichessRating = 0;
+        let chesscomRating = 0;
+
+        if (lichess_username) {
             try {
                 const resp = await fetch(`https://lichess.org/api/user/${lichess_username}`);
                 if (resp.ok) {
                     const data = await resp.json();
-                    rating = data.perfs?.blitz?.rating || data.perfs?.rapid?.rating || 1000;
-                    foundRating = true;
+                    const perfs = data.perfs || {};
+                    const ratings = [
+                        perfs.blitz?.rating, perfs.rapid?.rating, perfs.bullet?.rating, perfs.classical?.rating
+                    ].filter(r => typeof r === 'number');
+                    if (ratings.length > 0) lichessRating = Math.max(...ratings);
                 }
             } catch (e) {
                 // Ignore and fall back
             }
         } 
         
-        if (chesscom_username && !foundRating) {
+        if (chesscom_username) {
             try {
                 const resp = await fetch(`https://api.chess.com/pub/player/${chesscom_username}/stats`);
                 if (resp.ok) {
                     const data = await resp.json();
-                    rating = data.chess_blitz?.last?.rating || data.chess_rapid?.last?.rating || 1000;
-                    foundRating = true;
+                    const ratings = [
+                        data.chess_blitz?.last?.rating, data.chess_rapid?.last?.rating, data.chess_bullet?.last?.rating
+                    ].filter(r => typeof r === 'number');
+                    if (ratings.length > 0) chesscomRating = Math.max(...ratings);
                 }
             } catch (e) {
                 // Ignore and fall back
             }
         } 
         
+        if (lichessRating > 0 || chesscomRating > 0) {
+            rating = Math.max(lichessRating, chesscomRating);
+            foundRating = true;
+        }
+
         if (manual_rating && !foundRating) {
             rating = manual_rating;
             foundRating = true;

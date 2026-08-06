@@ -22,8 +22,12 @@ cronRouter.post("/sync-lichess", async (req, res) => {
                 const response = await fetch(`https://lichess.org/api/user/${player.lichessUsername}`);
                 if (response.ok) {
                     const data = await response.json();
-                    const newRating = data.perfs?.rapid?.rating || data.perfs?.blitz?.rating || player.currentRating;
-                    
+                    const perfs = data.perfs || {};
+                    const ratings = [
+                        perfs.blitz?.rating, perfs.rapid?.rating, perfs.bullet?.rating, perfs.classical?.rating
+                    ].filter(r => typeof r === 'number');
+                    const newRating = ratings.length > 0 ? Math.max(...ratings) : player.currentRating;
+
                     if (newRating !== player.currentRating) {
                         await db.update(players).set({ currentRating: newRating }).where(eq(players.id, player.id));
                     }
