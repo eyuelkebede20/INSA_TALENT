@@ -191,6 +191,29 @@ function StudentFlow() {
     }
   };
 
+  const [editLichess, setEditLichess] = useState("");
+  const [editChesscom, setEditChesscom] = useState("");
+  const [updatingAccounts, setUpdatingAccounts] = useState(false);
+
+  const handleUpdateAccounts = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUpdatingAccounts(true);
+    try {
+      await fetchApi("/students/update-accounts", {
+        method: "POST",
+        body: JSON.stringify({ lichess_username: editLichess, chesscom_username: editChesscom })
+      });
+      toast.success("Accounts updated successfully!");
+      // Refresh profile
+      const data = await fetchApi("/students/me");
+      setProfile(data.profile);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update accounts");
+    } finally {
+      setUpdatingAccounts(false);
+    }
+  };
+
   if (profile) {
     return (
       <div className="flex justify-center mt-10">
@@ -224,6 +247,21 @@ function StudentFlow() {
               ></textarea>
               <button type="submit" className="btn btn-secondary w-full" disabled={feedbackSending}>
                 {feedbackSending ? <span className="loading loading-spinner"></span> : "Submit Feedback"}
+              </button>
+            </form>
+
+            <div className="divider">Linked Accounts</div>
+            <form onSubmit={handleUpdateAccounts} className="space-y-4">
+              <div className="form-control">
+                <label className="label"><span className="label-text">Lichess Username</span></label>
+                <input type="text" placeholder={profile.lichess_username || "Not linked"} value={editLichess} onChange={e => setEditLichess(e.target.value)} className="input input-bordered w-full" />
+              </div>
+              <div className="form-control">
+                <label className="label"><span className="label-text">Chess.com Username</span></label>
+                <input type="text" placeholder={profile.chesscom_username || "Not linked"} value={editChesscom} onChange={e => setEditChesscom(e.target.value)} className="input input-bordered w-full" />
+              </div>
+              <button type="submit" className="btn btn-primary btn-outline w-full" disabled={updatingAccounts}>
+                {updatingAccounts ? <span className="loading loading-spinner"></span> : "Update Accounts"}
               </button>
             </form>
           </div>

@@ -128,7 +128,14 @@ export default function Leaderboards() {
                           {actualRank === 0 ? '🥇' : actualRank === 1 ? '🥈' : actualRank === 2 ? '🥉' : `#${actualRank + 1}`}
                         </td>
                         <td className="font-medium text-base">
-                          {s.real_name} <span className="text-base-content/50 text-xs ml-2">({s.lichess_username})</span>
+                          {s.real_name} 
+                          {s.lichess_username ? (
+                            <span className="text-base-content/50 text-xs ml-2">({s.lichess_username})</span>
+                          ) : (
+                            <div className="tooltip tooltip-right ml-2 inline-flex items-center" data-tip="No Lichess Account Linked">
+                              <div className="w-2 h-2 rounded-full bg-error animate-pulse"></div>
+                            </div>
+                          )}
                         </td>
                         <td>
                           <div className={`badge badge-sm font-semibold p-2 ${s.tier === 'ADVANCED' ? 'badge-secondary' : s.tier === 'MID' ? 'badge-accent' : 'badge-primary'}`}>

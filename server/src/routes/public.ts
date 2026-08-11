@@ -8,7 +8,7 @@ publicRouter.get("/canvas", async (req, res) => {
     try {
         const allTeams = await db.execute(sql`
             SELECT t.id, t.team_number, t.is_locked, 
-                   json_agg(json_build_object('name', p.real_name, 'tier', p.tier, 'rating', p.current_rating, 'insa_code', p.insa_code)) as members
+                   json_agg(json_build_object('name', p.real_name, 'tier', p.tier, 'rating', p.current_rating, 'insa_code', p.insa_code, 'lichess_username', p.lichess_username)) as members
             FROM teams t
             LEFT JOIN players p ON p.team_id = t.id
             GROUP BY t.id

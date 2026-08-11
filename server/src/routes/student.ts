@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db";
 import { players, teams } from "../db/schema";
-import { sql } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
 import { auth } from "../auth";
 import { fromNodeHeaders } from "better-auth/node";
 import { studentFeedbacks } from "../db/schema";
@@ -152,6 +152,25 @@ studentRouter.post("/complete-profile", async (req, res) => {
                 await tx.execute(sql`UPDATE teams SET is_locked = true WHERE id = ${teamId}`);
             }
         });
+
+        res.json({ success: true });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+studentRouter.post("/update-accounts", async (req, res) => {
+    try {
+        const user = (req as any).user;
+        const sanitizeText = (str: any) => typeof str === 'string' ? str.replace(/[<>'"]/g, '').trim() : str;
+        
+        const lichess_username = sanitizeText(req.body.lichess_username) || null;
+        const chesscom_username = sanitizeText(req.body.chesscom_username) || null;
+
+        await db.update(players).set({
+            lichessUsername: lichess_username,
+            chesscomUsername: chesscom_username
+        }).where(eq(players.googleId, user.id));
 
         res.json({ success: true });
     } catch (error: any) {

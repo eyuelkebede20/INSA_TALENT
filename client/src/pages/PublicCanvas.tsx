@@ -119,6 +119,11 @@ export default function PublicCanvas() {
                                   <div>
                                     <p className="text-sm font-bold flex items-center gap-2">
                                       {m.name}
+                                      {!m.lichess_username && (
+                                        <div className="tooltip tooltip-right" data-tip="No Lichess Account Linked">
+                                          <div className="w-2 h-2 rounded-full bg-error animate-pulse"></div>
+                                        </div>
+                                      )}
                                     </p>
                                   </div>
                                 </div>
