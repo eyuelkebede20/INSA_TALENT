@@ -55,17 +55,27 @@ export default function Leaderboards() {
   };
 
   // Filtered & Paginated Data
+  const sSearch = studentSearch.toLowerCase().trim();
+  const sSearchNoSpaces = sSearch.replace(/\s+/g, '');
+
   const filteredStudents = students.filter(s => 
-    s.real_name.toLowerCase().includes(studentSearch.toLowerCase()) || 
-    s.lichess_username?.toLowerCase().includes(studentSearch.toLowerCase()) ||
-    s.insa_code?.toLowerCase().includes(studentSearch.toLowerCase())
+    s.real_name.toLowerCase().includes(sSearch) || 
+    s.lichess_username?.toLowerCase().includes(sSearch) ||
+    s.insa_code?.toLowerCase().includes(sSearch) ||
+    s.insa_code?.toLowerCase().replace(/-/g, '').includes(sSearchNoSpaces) ||
+    s.team_number?.toString().includes(sSearch.replace('team', '').trim()) ||
+    `team${s.team_number}`.includes(sSearchNoSpaces)
   );
   const paginatedStudents = filteredStudents.slice((studentPage - 1) * ITEMS_PER_PAGE, studentPage * ITEMS_PER_PAGE);
   const totalStudentPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
 
+  const tSearch = teamSearch.toLowerCase().trim();
+  const tSearchNoSpaces = tSearch.replace(/\s+/g, '');
+
   const filteredTeams = teams.filter(t => 
-    t.team_number.toString().includes(teamSearch) ||
-    `team ${t.team_number}`.includes(teamSearch.toLowerCase())
+    t.team_number.toString() === tSearch ||
+    t.team_number.toString().includes(tSearch.replace('team', '').trim()) ||
+    `team${t.team_number}`.includes(tSearchNoSpaces)
   );
   const paginatedTeams = filteredTeams.slice((teamPage - 1) * ITEMS_PER_PAGE, teamPage * ITEMS_PER_PAGE);
   const totalTeamPages = Math.ceil(filteredTeams.length / ITEMS_PER_PAGE);

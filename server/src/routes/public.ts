@@ -23,7 +23,7 @@ publicRouter.get("/canvas", async (req, res) => {
 publicRouter.get("/leaderboard/students", async (req, res) => {
     try {
         const students = await db.execute(sql`
-            SELECT p.real_name, p.tier, p.current_rating, p.lichess_username, t.team_number
+            SELECT p.real_name, p.tier, p.current_rating, p.lichess_username, t.team_number, p.insa_code
             FROM players p
             LEFT JOIN teams t ON p.team_id = t.id
             ORDER BY p.current_rating DESC

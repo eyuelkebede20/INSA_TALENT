@@ -26,14 +26,20 @@ export default function PublicCanvas() {
 
   const filteredTeams = teams.filter(t => {
     if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase().trim();
+    const qNoSpaces = q.replace(/\s+/g, '');
+    
     // match team number
-    if (t.team_number.toString().includes(q) || `team ${t.team_number}`.includes(q)) return true;
+    if (t.team_number.toString() === q || 
+        t.team_number.toString().includes(q.replace('team', '').trim()) || 
+        `team${t.team_number}`.includes(qNoSpaces)) return true;
+        
     // match member name or insa code
     return t.members?.some((m: any) => 
       m && (
         (m.name && m.name.toLowerCase().includes(q)) ||
-        (m.insa_code && m.insa_code.toLowerCase().includes(q))
+        (m.insa_code && m.insa_code.toLowerCase().includes(q)) ||
+        (m.insa_code && m.insa_code.toLowerCase().replace(/-/g, '').includes(qNoSpaces))
       )
     );
   });
