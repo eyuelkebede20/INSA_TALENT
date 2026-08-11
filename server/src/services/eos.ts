@@ -21,11 +21,33 @@ export async function assignPlayerToTeam(playerId: string, playerTier: "ADVANCED
 
     // 2. If no open team exists, create a new one
     if (!teamId) {
+        const teamCountRes = await tx.execute(sql`SELECT COUNT(*) as count FROM teams`);
+        const teamCount = Number(teamCountRes[0]?.count || 0);
+        if (teamCount >= 100) {
+            throw new Error("Maximum number of teams (100) reached.");
+        }
+
         const highestTeamResult = await tx.execute(sql`SELECT MAX(team_number) as max_team FROM teams`);
         const maxTeamNumber = highestTeamResult[0]?.max_team || 0;
         
+        let nextTeamNumber = maxTeamNumber + 1;
+        if (nextTeamNumber > 100) {
+            // Find lowest available team number between 1 and 100
+            const existingTeams = await tx.execute(sql`SELECT team_number FROM teams`);
+            const usedNumbers = new Set(existingTeams.map((t: any) => t.team_number));
+            for (let i = 1; i <= 100; i++) {
+                if (!usedNumbers.has(i)) {
+                    nextTeamNumber = i;
+                    break;
+                }
+            }
+            if (nextTeamNumber > 100) {
+                 throw new Error("No available team numbers between 1 and 100.");
+            }
+        }
+
         const newTeam = await tx.insert(teams).values({
-            teamNumber: maxTeamNumber + 1,
+            teamNumber: nextTeamNumber,
             isLocked: false
         }).returning();
         teamId = newTeam[0].id;

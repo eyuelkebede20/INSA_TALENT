@@ -27,7 +27,7 @@ studentRouter.use(async (req, res, next) => {
 
 studentRouter.post("/complete-profile", async (req, res) => {
     try {
-        const authSession = await auth.api.getSession({ headers: req.headers });
+        const authSession = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
         if (!authSession?.user) {
             return res.status(401).json({ error: "Unauthorized" });
         }
@@ -35,6 +35,9 @@ studentRouter.post("/complete-profile", async (req, res) => {
         const { lichess_username, chesscom_username, manual_rating, insa_code, group_number } = req.body;
         if (!group_number) {
             return res.status(400).json({ error: "Group number is required" });
+        }
+        if (Number(group_number) < 1 || Number(group_number) > 100) {
+            return res.status(400).json({ error: "Team number must be between 1 and 100" });
         }
         if (!lichess_username && !chesscom_username && !manual_rating) {
             return res.status(400).json({ error: "Must provide Lichess, Chess.com, or Manual Rating" });
@@ -108,11 +111,23 @@ studentRouter.post("/complete-profile", async (req, res) => {
             let teamId = teamRes[0]?.id;
             
             if (!teamId) {
+                const teamCountRes = await tx.execute(sql`SELECT COUNT(*) as count FROM teams`);
+                const teamCount = Number(teamCountRes[0]?.count || 0);
+                if (teamCount >= 100) {
+                    throw new Error("Maximum number of teams (100) reached.");
+                }
+
                 const newTeam = await tx.insert(teams).values({
                     teamNumber: group_number,
                     isLocked: false
                 }).returning();
                 teamId = newTeam[0].id;
+            } else {
+                const maxCap = newTier === 'ADVANCED' ? 1 : newTier === 'MID' ? 2 : 8;
+                const countRes = await tx.execute(sql`SELECT COUNT(*) as count FROM players WHERE team_id = ${teamId} AND tier = ${newTier}`);
+                if (Number(countRes[0]?.count || 0) >= maxCap) {
+                    throw new Error(`Team ${group_number} is already full for ${newTier} players.`);
+                }
             }
 
             await tx.insert(players).values({
@@ -126,6 +141,11 @@ studentRouter.post("/complete-profile", async (req, res) => {
                 tier: newTier,
                 teamId: teamId
             });
+
+            const totalCountRes = await tx.execute(sql`SELECT COUNT(*) as count FROM players WHERE team_id = ${teamId}`);
+            if (Number(totalCountRes[0]?.count || 0) === 11) {
+                await tx.execute(sql`UPDATE teams SET is_locked = true WHERE id = ${teamId}`);
+            }
         });
 
         res.json({ success: true });
@@ -160,7 +180,7 @@ studentRouter.post("/feedback", async (req, res) => {
         if (!playerRes[0]) return res.status(403).json({ error: "Complete your profile first" });
 
         await db.insert(studentFeedbacks).values({
-            playerId: playerRes[0].id,
+            playerId: String(playerRes[0].id),
             message: message
         });
 

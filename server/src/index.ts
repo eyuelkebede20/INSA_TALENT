@@ -9,8 +9,22 @@ import { studentRouter } from "./routes/student";
 import { adminRouter } from "./routes/admin";
 import { publicRouter } from "./routes/public";
 import { cronRouter } from "./routes/cron";
+import rateLimit from "express-rate-limit";
 
 const app = express();
+app.set("trust proxy", 1); // Trust first proxy (Render/Vercel)
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    message: { error: "Too many requests from this IP, please try again after 15 minutes" }
+});
+
+// Apply rate limiter to all requests
+app.use(limiter);
+
 const PORT = process.env.PORT || 3000;
 
 app.use(helmet({
