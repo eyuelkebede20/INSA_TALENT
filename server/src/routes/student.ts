@@ -32,7 +32,12 @@ studentRouter.post("/complete-profile", async (req, res) => {
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        const { lichess_username, chesscom_username, manual_rating, insa_code, group_number } = req.body;
+        const sanitizeText = (str: any) => typeof str === 'string' ? str.replace(/[<>'"]/g, '').trim() : str;
+        
+        const lichess_username = sanitizeText(req.body.lichess_username);
+        const chesscom_username = sanitizeText(req.body.chesscom_username);
+        const insa_code = sanitizeText(req.body.insa_code);
+        const { manual_rating, group_number } = req.body;
         if (!group_number) {
             return res.status(400).json({ error: "Group number is required" });
         }
@@ -172,7 +177,8 @@ studentRouter.get("/me", async (req, res) => {
 studentRouter.post("/feedback", async (req, res) => {
     try {
         const user = (req as any).user;
-        const { message } = req.body;
+        const rawMessage = req.body.message;
+        const message = typeof rawMessage === 'string' ? rawMessage.replace(/[<>]/g, '').trim() : rawMessage;
         
         if (!message) return res.status(400).json({ error: "Message is required" });
 
