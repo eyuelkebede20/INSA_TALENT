@@ -6,7 +6,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [teams, setTeams] = useState<any[]>([]);
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
-  const [settings, setSettings] = useState({ advanced: 1200, mid: 600 });
+  const [settings, setSettings] = useState({ advanced: 1200, mid: 600, registrationOpen: true });
   const [loading, setLoading] = useState(true);
 
   const fetchTeams = () => fetchApi('/admin/teams').then(setTeams);
@@ -14,7 +14,8 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     Promise.all([
       fetchTeams(),
-      fetchApi('/admin/feedbacks').then(setFeedbacks)
+      fetchApi('/admin/feedbacks').then(setFeedbacks),
+      fetchApi('/admin/settings').then(s => setSettings({ advanced: s.advancedThreshold, mid: s.midThreshold, registrationOpen: s.registrationOpen }))
     ]).then(() => setLoading(false));
   }, []);
 
@@ -65,10 +66,22 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const updateSettings = async (e: any) => {
     e.preventDefault();
     try {
-      await fetchApi('/admin/settings', { method: 'POST', body: JSON.stringify({ advanced_threshold: settings.advanced, mid_threshold: settings.mid }) });
-      toast.success("Tiers Updated!");
+      await fetchApi('/admin/settings', { method: 'POST', body: JSON.stringify({ advanced_threshold: settings.advanced, mid_threshold: settings.mid, registration_open: settings.registrationOpen }) });
+      toast.success("Settings Updated!");
       fetchTeams();
     } catch (err: any) {
+      toast.error(err.message || "Failed to update settings");
+    }
+  };
+
+  const toggleRegistration = async () => {
+    const newState = !settings.registrationOpen;
+    setSettings({ ...settings, registrationOpen: newState });
+    try {
+      await fetchApi('/admin/settings', { method: 'POST', body: JSON.stringify({ advanced_threshold: settings.advanced, mid_threshold: settings.mid, registration_open: newState }) });
+      toast.success(`Registration ${newState ? 'Opened' : 'Closed'}!`);
+    } catch (err: any) {
+      setSettings({ ...settings, registrationOpen: !newState }); // Revert
       toast.error(err.message || "Failed to update settings");
     }
   };
@@ -97,7 +110,13 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     <div className="space-y-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <h1 className="text-4xl font-bold text-error">Admin Controls</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <div className="form-control mr-4">
+            <label className="label cursor-pointer gap-2">
+              <span className="label-text font-bold">{settings.registrationOpen ? "Registration Open" : "Registration Closed"}</span> 
+              <input type="checkbox" className="toggle toggle-success" checked={settings.registrationOpen} onChange={toggleRegistration} />
+            </label>
+          </div>
           <button onClick={handleRegroup} className="btn btn-warning shadow-lg shadow-warning/20">☢️ Nuclear Regroup</button>
           <button onClick={handleLogout} className="btn btn-outline btn-error">Logout</button>
         </div>

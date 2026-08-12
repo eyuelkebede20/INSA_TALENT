@@ -54,6 +54,7 @@ export const eventSettings = pgTable('event_settings', {
   id: serial('id').primaryKey(),
   advancedThreshold: integer('advanced_threshold').default(1200).notNull(),
   midThreshold: integer('mid_threshold').default(600).notNull(),
+  registrationOpen: boolean('registration_open').default(true).notNull(),
 });
 
 export const teams = pgTable('teams', {
@@ -72,6 +73,8 @@ export const players = pgTable('players', {
   chesscomUsername: varchar('chesscom_username', { length: 100 }).unique(),
   insaCode: varchar('insa_code', { length: 50 }).unique(),
   currentRating: integer('current_rating').notNull(),
+  lichessWins: integer('lichess_wins').default(0).notNull(),
+  lichessLosses: integer('lichess_losses').default(0).notNull(),
   tier: tierEnum('tier').notNull(),
   teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),

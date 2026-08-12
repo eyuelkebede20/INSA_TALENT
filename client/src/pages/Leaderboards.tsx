@@ -199,7 +199,9 @@ export default function Leaderboards() {
                   <tr className="text-base-content/60 text-sm uppercase tracking-wider border-b-2 border-base-300">
                     <th>Rank</th>
                     <th>Team</th>
-                    <th className="text-right">Total Rating</th>
+                    <th className="text-right">Daily Wins</th>
+                    <th className="text-right">Daily Losses</th>
+                    <th className="text-right">Net Score</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -211,7 +213,9 @@ export default function Leaderboards() {
                           {actualRank === 0 ? '👑' : `#${actualRank + 1}`}
                         </td>
                         <td className="font-medium text-base">Team {t.team_number}</td>
-                        <td className="text-right font-bold text-primary text-lg">{t.total_rating}</td>
+                        <td className="text-right font-bold text-success text-lg">+{t.total_wins}</td>
+                        <td className="text-right font-bold text-error text-lg">-{t.total_losses}</td>
+                        <td className="text-right font-bold text-primary text-lg">{t.total_rating > 0 ? `+${t.total_rating}` : t.total_rating}</td>
                       </tr>
                     );
                   })}

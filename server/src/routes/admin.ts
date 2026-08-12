@@ -87,14 +87,14 @@ adminRouter.post("/reassign", async (req, res) => {
 
 adminRouter.post("/settings", async (req, res) => {
     try {
-        const { advanced_threshold, mid_threshold } = req.body;
+        const { advanced_threshold, mid_threshold, registration_open } = req.body;
         
         await db.transaction(async (tx: any) => {
             const settingsRes = await tx.execute(sql`SELECT * FROM event_settings LIMIT 1`);
             if (settingsRes.length === 0) {
-                await tx.insert(eventSettings).values({ advancedThreshold: advanced_threshold, midThreshold: mid_threshold });
+                await tx.insert(eventSettings).values({ advancedThreshold: advanced_threshold, midThreshold: mid_threshold, registrationOpen: registration_open !== undefined ? registration_open : true });
             } else {
-                await tx.update(eventSettings).set({ advancedThreshold: advanced_threshold, midThreshold: mid_threshold });
+                await tx.update(eventSettings).set({ advancedThreshold: advanced_threshold, midThreshold: mid_threshold, registrationOpen: registration_open !== undefined ? registration_open : true });
             }
 
             const allPlayers = await tx.execute(sql`
@@ -115,6 +115,16 @@ adminRouter.post("/settings", async (req, res) => {
         });
         
         res.json({ success: true });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+adminRouter.get("/settings", async (req, res) => {
+    try {
+        const settingsRes = await db.execute(sql`SELECT * FROM event_settings LIMIT 1`);
+        const settings = settingsRes[0] || { advanced_threshold: 1200, mid_threshold: 600, registration_open: true };
+        res.json(settings);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }

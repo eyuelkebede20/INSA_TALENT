@@ -65,8 +65,12 @@ studentRouter.post("/complete-profile", async (req, res) => {
                 if (resp.ok) {
                     const data = await resp.json();
                     const perfs = data.perfs || {};
+                    const getLichessGames = (perf: any) => perf?.games || 0;
                     const ratings = [
-                        perfs.blitz?.rating, perfs.rapid?.rating, perfs.bullet?.rating, perfs.classical?.rating
+                        getLichessGames(perfs.blitz) >= 7 ? perfs.blitz?.rating : null,
+                        getLichessGames(perfs.rapid) >= 7 ? perfs.rapid?.rating : null,
+                        getLichessGames(perfs.bullet) >= 7 ? perfs.bullet?.rating : null,
+                        getLichessGames(perfs.classical) >= 7 ? perfs.classical?.rating : null
                     ].filter(r => typeof r === 'number');
                     if (ratings.length > 0) lichessRating = Math.max(...ratings);
                 }
@@ -80,8 +84,11 @@ studentRouter.post("/complete-profile", async (req, res) => {
                 const resp = await fetch(`https://api.chess.com/pub/player/${chesscom_username}/stats`);
                 if (resp.ok) {
                     const data = await resp.json();
+                    const getChesscomGames = (perf: any) => (perf?.record?.win || 0) + (perf?.record?.loss || 0) + (perf?.record?.draw || 0);
                     const ratings = [
-                        data.chess_blitz?.last?.rating, data.chess_rapid?.last?.rating, data.chess_bullet?.last?.rating
+                        getChesscomGames(data.chess_blitz) >= 7 ? data.chess_blitz?.last?.rating : null,
+                        getChesscomGames(data.chess_rapid) >= 7 ? data.chess_rapid?.last?.rating : null,
+                        getChesscomGames(data.chess_bullet) >= 7 ? data.chess_bullet?.last?.rating : null
                     ].filter(r => typeof r === 'number');
                     if (ratings.length > 0) chesscomRating = Math.max(...ratings);
                 }
@@ -104,8 +111,12 @@ studentRouter.post("/complete-profile", async (req, res) => {
              rating = 1000; // ultimate fallback
         }
 
-        const settingsRes = await db.execute(sql`SELECT advanced_threshold, mid_threshold FROM event_settings LIMIT 1`);
-        const settings: any = settingsRes[0] || { advanced_threshold: 1200, mid_threshold: 600 };
+        const settingsRes = await db.execute(sql`SELECT advanced_threshold, mid_threshold, registration_open FROM event_settings LIMIT 1`);
+        const settings: any = settingsRes[0] || { advanced_threshold: 1200, mid_threshold: 600, registration_open: true };
+
+        if (settings.registration_open === false) {
+             return res.status(403).json({ error: "Registration is currently closed." });
+        }
 
         let newTier: "ADVANCED" | "MID" | "BEGINNER" = "BEGINNER";
         if (rating >= settings.advanced_threshold) newTier = "ADVANCED";
