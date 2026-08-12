@@ -9,6 +9,8 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [settings, setSettings] = useState({ advanced: 1200, mid: 600, registrationOpen: true });
   const [loading, setLoading] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const [canvasLocked, setCanvasLocked] = useState(false);
 
   const fetchTeams = () => fetchApi('/admin/teams').then(setTeams);
 
@@ -182,14 +184,31 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             <span className="loading loading-dots loading-lg text-primary"></span>
           </div>
         ) : (
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <TransformWrapper initialScale={0.8} minScale={0.1} maxScale={4} centerOnInit limitToBounds={false} centerZoomedOut={false}>
+          <DragDropContext 
+            onDragStart={() => setIsDragging(true)}
+            onDragEnd={(result) => {
+              setIsDragging(false);
+              handleDragEnd(result);
+            }}
+          >
+            <TransformWrapper 
+              initialScale={0.8} 
+              minScale={0.1} 
+              maxScale={4} 
+              centerOnInit 
+              limitToBounds={false} 
+              centerZoomedOut={false}
+              panning={{ disabled: canvasLocked || isDragging }}
+            >
               {({ zoomIn, zoomOut, resetTransform }) => (
                 <>
                   <div className="absolute top-4 right-4 z-50 flex flex-col gap-2 bg-base-100/90 p-2 rounded-xl shadow-lg border border-base-300 backdrop-blur-md pointer-events-auto">
-                    <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomIn()}>+</button>
-                    <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomOut()}>-</button>
-                    <button className="btn btn-sm btn-square btn-ghost" onClick={() => resetTransform()}>⟲</button>
+                    <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomIn()} title="Zoom In">+</button>
+                    <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomOut()} title="Zoom Out">-</button>
+                    <button className="btn btn-sm btn-square btn-ghost" onClick={() => resetTransform()} title="Reset">⟲</button>
+                    <button className={`btn btn-sm btn-square ${canvasLocked ? 'btn-error bg-error/20 text-error' : 'btn-ghost'}`} onClick={() => setCanvasLocked(!canvasLocked)} title={canvasLocked ? "Unlock Canvas" : "Lock Canvas"}>
+                      {canvasLocked ? '🔒' : '🔓'}
+                    </button>
                   </div>
                   
                   <TransformComponent wrapperClass="!w-full !h-full !absolute !inset-0 cursor-grab active:cursor-grabbing" contentClass="p-[1000px] w-full h-full flex items-center justify-center">
