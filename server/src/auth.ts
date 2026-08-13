@@ -26,7 +26,8 @@ export const auth = betterAuth({
     advanced: {
         defaultCookieAttributes: {
             sameSite: "none",
-            secure: true
+            secure: true,
+            domain: process.env.COOKIE_DOMAIN || "insa-aca.vercel.app"
         }
     }
 });
