@@ -170,24 +170,6 @@ studentRouter.post("/complete-profile", async (req, res) => {
     }
 });
 
-studentRouter.post("/update-accounts", async (req, res) => {
-    try {
-        const user = (req as any).user;
-        const sanitizeText = (str: any) => typeof str === 'string' ? str.replace(/[<>'"]/g, '').trim() : str;
-        
-        const lichess_username = sanitizeText(req.body.lichess_username) || null;
-        const chesscom_username = sanitizeText(req.body.chesscom_username) || null;
-
-        await db.update(players).set({
-            lichessUsername: lichess_username,
-            chesscomUsername: chesscom_username
-        }).where(eq(players.googleId, user.id));
-
-        res.json({ success: true });
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
 studentRouter.get("/me", async (req, res) => {
     try {
