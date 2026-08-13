@@ -68,7 +68,10 @@ cronRouter.post("/sync-lichess", async (req, res) => {
                     }
                 }
 
-                const newRating = Math.max(lichessRating, chesscomRating, player.currentRating); // ensure it never drops below their current if both APIs fail
+                let newRating = player.currentRating;
+                if (lichessRating > 0 || chesscomRating > 0) {
+                    newRating = Math.max(lichessRating, chesscomRating);
+                }
 
                 await db.update(players).set({ 
                     currentRating: newRating,
