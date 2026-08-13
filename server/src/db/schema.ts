@@ -77,6 +77,7 @@ export const players = pgTable('players', {
   currentRating: integer('current_rating').notNull(),
   lichessWins: integer('lichess_wins').default(0).notNull(),
   lichessLosses: integer('lichess_losses').default(0).notNull(),
+  lichessDraws: integer('lichess_draws').default(0).notNull(),
   tier: tierEnum('tier').notNull(),
   teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -91,6 +92,7 @@ export const playerDailyStats = pgTable('player_daily_stats', {
   rating: integer('rating').notNull(),
   wins: integer('wins').notNull(),
   losses: integer('losses').notNull(),
+  draws: integer('draws').default(0).notNull(),
   recordedAt: timestamp('recorded_at').defaultNow().notNull(),
 });
 

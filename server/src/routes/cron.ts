@@ -24,8 +24,10 @@ cronRouter.post("/sync-lichess", async (req, res) => {
                 
                 let currentLichessWins = player.lichessWins;
                 let currentLichessLosses = player.lichessLosses;
+                let currentLichessDraws = player.lichessDraws;
                 let dailyWins = 0;
                 let dailyLosses = 0;
+                let dailyDraws = 0;
 
                 if (player.lichessUsername) {
                     const response = await fetch(`https://lichess.org/api/user/${player.lichessUsername}`);
@@ -43,14 +45,17 @@ cronRouter.post("/sync-lichess", async (req, res) => {
 
                         const totalWins = data.count?.win || 0;
                         const totalLosses = data.count?.loss || 0;
+                        const totalDraws = data.count?.draw || 0;
                         
-                        if (player.lichessWins > 0 || player.lichessLosses > 0) {
+                        if (player.lichessWins > 0 || player.lichessLosses > 0 || player.lichessDraws > 0) {
                              dailyWins = Math.max(0, totalWins - player.lichessWins);
                              dailyLosses = Math.max(0, totalLosses - player.lichessLosses);
+                             dailyDraws = Math.max(0, totalDraws - player.lichessDraws);
                         }
 
                         currentLichessWins = totalWins;
                         currentLichessLosses = totalLosses;
+                        currentLichessDraws = totalDraws;
                     }
                 }
 
@@ -76,15 +81,17 @@ cronRouter.post("/sync-lichess", async (req, res) => {
                 await db.update(players).set({ 
                     currentRating: newRating,
                     lichessWins: currentLichessWins,
-                    lichessLosses: currentLichessLosses
+                    lichessLosses: currentLichessLosses,
+                    lichessDraws: currentLichessDraws
                 }).where(eq(players.id, player.id));
 
-                if (dailyWins > 0 || dailyLosses > 0) {
+                if (dailyWins > 0 || dailyLosses > 0 || dailyDraws > 0) {
                     await db.insert(playerDailyStats).values({
                         playerId: player.id,
                         rating: lichessRating || player.currentRating,
                         wins: dailyWins,
-                        losses: dailyLosses
+                        losses: dailyLosses,
+                        draws: dailyDraws
                     });
                 }
             } catch (err) {

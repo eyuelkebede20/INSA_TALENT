@@ -200,8 +200,9 @@ export default function Leaderboards() {
                     <th>Rank</th>
                     <th>Team</th>
                     <th className="text-right">Total Wins</th>
+                    <th className="text-right">Total Draws</th>
                     <th className="text-right">Total Losses</th>
-                    <th className="text-right">Net Score</th>
+                    <th className="text-right">Total Points</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -213,15 +214,16 @@ export default function Leaderboards() {
                           {actualRank === 0 ? '👑' : `#${actualRank + 1}`}
                         </td>
                         <td className="font-medium text-base">Team {t.team_number}</td>
-                        <td className="text-right font-bold text-success text-lg">+{t.total_wins}</td>
-                        <td className="text-right font-bold text-error text-lg">-{t.total_losses}</td>
-                        <td className="text-right font-bold text-primary text-lg">{t.total_rating > 0 ? `+${t.total_rating}` : t.total_rating}</td>
+                        <td className="text-right font-bold text-success text-lg">{t.total_wins}</td>
+                        <td className="text-right font-bold text-warning text-lg">{t.total_draws}</td>
+                        <td className="text-right font-bold text-error text-lg">{t.total_losses}</td>
+                        <td className="text-right font-bold text-primary text-lg">{t.total_rating} pts</td>
                       </tr>
                     );
                   })}
                   {filteredTeams.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="py-10 text-center text-base-content/50">No teams match your search.</td>
+                      <td colSpan={6} className="py-10 text-center text-base-content/50">No teams match your search.</td>
                     </tr>
                   )}
                 </tbody>
