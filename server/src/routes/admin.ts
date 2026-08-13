@@ -9,7 +9,8 @@ import jwt from "jsonwebtoken";
 export const adminRouter = Router();
 
 adminRouter.post("/login", (req, res) => {
-    const { password } = req.body;
+    let { password } = req.body;
+    password = typeof password === 'string' ? password.replace(/[<>'"]/g, '').trim() : '';
     if (password === process.env.ADMIN_PASSWORD) {
         const token = jwt.sign({ role: "admin" }, process.env.JWT_SECRET as string, { expiresIn: "1d" });
         res.cookie("admin_token", token, { httpOnly: true, secure: true, sameSite: 'none' });
@@ -63,6 +64,21 @@ adminRouter.get("/teams", async (req, res) => {
         res.json(allTeams);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+adminRouter.get("/export-csv", async (req, res) => {
+    try {
+        const allPlayers = await db.select().from(players);
+        let csv = "Name,Email,INSA_ID,Lichess,Chesscom,Rating,Tier,Team_ID\n";
+        for (const p of allPlayers) {
+            csv += `"${p.realName || ''}","${p.email || ''}","${p.insaCode || ''}","${p.lichessUsername || ''}","${p.chesscomUsername || ''}","${p.currentRating || 0}","${p.tier || ''}","${p.teamId || ''}"\n`;
+        }
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="players.csv"');
+        res.send(csv);
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
     }
 });
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchApi } from '../lib/api';
+import { fetchApi, API_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { TransformWrapper, TransformComponent, useTransformContext } from 'react-zoom-pan-pinch';
@@ -157,6 +157,26 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     onLogout();
   };
 
+  const handleExportCSV = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/export-csv`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to export CSV");
+      
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "players.csv";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success("CSV Downloaded!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to download CSV");
+    }
+  };
+
   return (
     <div className="absolute inset-0 z-40 bg-base-200 overflow-hidden">
       {/* Floating Left Panel: Options */}
@@ -168,9 +188,10 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               <h2 className="card-title text-error text-xl font-bold border-b border-base-200 pb-2">Admin Controls</h2>
               
               <div className="flex flex-col gap-2">
-                <button onClick={handleRegroup} className="btn btn-sm btn-warning w-full shadow-lg shadow-warning/20">☢️ Nuclear Regroup</button>
-                <button onClick={handleLogout} className="btn btn-sm btn-outline btn-error w-full">Logout</button>
-              </div>
+              <button onClick={handleExportCSV} className="btn btn-sm btn-info w-full text-info-content shadow-lg shadow-info/20">📥 Export CSV</button>
+              <button onClick={handleRegroup} className="btn btn-sm btn-warning w-full shadow-lg shadow-warning/20">☢️ Nuclear Regroup</button>
+              <button onClick={handleLogout} className="btn btn-sm btn-outline btn-error w-full">Logout</button>
+            </div>
               
               <div className="form-control bg-base-200 rounded-lg p-2 mt-2">
                 <label className="label cursor-pointer gap-2 p-1">
