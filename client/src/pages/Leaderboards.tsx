@@ -116,7 +116,7 @@ export default function Leaderboards() {
                     <th>Rank</th>
                     <th>Name</th>
                     <th>Tier</th>
-                    <th className="text-right">Games Today</th>
+                    <th className="text-right">Games Played</th>
                     <th className="text-right">Rating</th>
                   </tr>
                 </thead>

@@ -50,7 +50,7 @@ publicRouter.get("/leaderboard/students", async (req, res) => {
 
         const students = await db.execute(sql`
             SELECT p.real_name, p.tier, p.current_rating, p.lichess_username, t.team_number, p.insa_code,
-                   COALESCE((SELECT SUM(wins + losses + draws) FROM player_daily_stats WHERE player_id = p.id AND recorded_at >= CURRENT_DATE), 0) as games_played_today
+                   COALESCE((SELECT SUM(wins + losses + draws) FROM player_daily_stats WHERE player_id = p.id), 0) as games_played_today
             FROM players p
             LEFT JOIN teams t ON p.team_id = t.id
             ORDER BY p.current_rating DESC
