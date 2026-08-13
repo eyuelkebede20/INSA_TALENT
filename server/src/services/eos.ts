@@ -3,7 +3,7 @@ import { players, teams } from "../db/schema";
 import { eq, sql, desc } from "drizzle-orm";
 
 export async function assignPlayerToTeam(playerId: string, playerTier: "ADVANCED" | "MID" | "BEGINNER", tx: any = db) {
-    const maxCapacity = playerTier === 'ADVANCED' ? 1 : playerTier === 'MID' ? 2 : 8;
+    const maxCapacity = 11;
 
     // 1. Find the earliest unlocked team with room for this tier
     const targetTeam = await tx.execute(sql`

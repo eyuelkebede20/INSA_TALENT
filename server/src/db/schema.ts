@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, serial, varchar, boolean, integer, timestamp, uuid, pgEnum, text } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, boolean, integer, timestamp, uuid, pgEnum, text, index } from 'drizzle-orm/pg-core';
 
 export const tierEnum = pgEnum('tier', ['ADVANCED', 'MID', 'BEGINNER']);
 
@@ -62,7 +62,9 @@ export const teams = pgTable('teams', {
   teamNumber: integer('team_number').notNull().unique(),
   isLocked: boolean('is_locked').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (t) => ({
+  isLockedIdx: index('teams_is_locked_idx').on(t.isLocked),
+}));
 
 export const players = pgTable('players', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -78,7 +80,10 @@ export const players = pgTable('players', {
   tier: tierEnum('tier').notNull(),
   teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (t) => ({
+  teamIdIdx: index('players_team_id_idx').on(t.teamId),
+  tierIdx: index('players_tier_idx').on(t.tier),
+}));
 
 export const playerDailyStats = pgTable('player_daily_stats', {
   id: serial('id').primaryKey(),

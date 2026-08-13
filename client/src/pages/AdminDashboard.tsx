@@ -139,7 +139,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   };
 
   const handleRegroup = async () => {
-    if(!confirm("NUCLEAR REGROUP: Are you absolutely sure? This will wipe ALL current team assignments and re-sort EVERYONE automatically using the EOS algorithm to hit the 8-2-1 targets. This cannot be undone.")) return;
+    if(!confirm("NUCLEAR REGROUP: Are you absolutely sure? This will wipe ALL current team assignments and re-sort EVERYONE automatically into teams of 11. This cannot be undone.")) return;
     
     setLoading(true);
     try {
