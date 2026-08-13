@@ -8,12 +8,14 @@ export const cronRouter = Router();
 export let lastCronHealth = {
     lastSync: null as string | null,
     status: "Never run" as string,
-    message: ""
+    message: "",
+    invalidAccounts: [] as string[]
 };
 
 export async function runLichessSync() {
     try {
         const allPlayers = await db.select().from(players);
+        lastCronHealth.invalidAccounts = []; // reset for this run
         
         for (const player of allPlayers) {
             if (!player.lichessUsername && !player.chesscomUsername) continue;
@@ -56,6 +58,11 @@ export async function runLichessSync() {
                         currentLichessWins = totalWins;
                         currentLichessLosses = totalLosses;
                         currentLichessDraws = totalDraws;
+                    } else if (response.status === 404) {
+                        lastCronHealth.invalidAccounts.push(`${player.realName} (${player.lichessUsername})`);
+                    } else if (response.status === 429) {
+                        // Rate limited! wait longer
+                        await new Promise(resolve => setTimeout(resolve, 2000));
                     }
                 }
 
@@ -97,8 +104,8 @@ export async function runLichessSync() {
             } catch (err) {
                 console.error(`Failed to fetch for ${player.lichessUsername}`, err);
             }
-            // 200ms delay to respect Lichess API limits (max 5 requests per second)
-            await new Promise(resolve => setTimeout(resolve, 200));
+            // 400ms delay to respect Lichess API limits safely (max 5 requests per second is 200ms, but network jitter can cause 429)
+            await new Promise(resolve => setTimeout(resolve, 400));
         }
 
         lastCronHealth.lastSync = new Date().toISOString();

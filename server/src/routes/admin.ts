@@ -186,11 +186,8 @@ adminRouter.get("/cron-health", (req, res) => {
     res.json(lastCronHealth);
 });
 
-adminRouter.post("/force-sync", async (req, res) => {
-    try {
-        await runLichessSync();
-        res.json({ success: true });
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
-    }
+adminRouter.post("/force-sync", (req, res) => {
+    // Fire and forget so we don't timeout on Vercel proxy
+    runLichessSync().catch(console.error);
+    res.json({ success: true, message: "Sync started in background" });
 });

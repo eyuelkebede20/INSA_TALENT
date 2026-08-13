@@ -67,7 +67,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [isDragging, setIsDragging] = useState(false);
   const [canvasLocked, setCanvasLocked] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [cronHealth, setCronHealth] = useState({ status: "Unknown", lastSync: null as string | null, message: "" });
+  const [cronHealth, setCronHealth] = useState({ status: "Unknown", lastSync: null as string | null, message: "", invalidAccounts: [] as string[] });
   
   // Panel toggles
   const [controlsOpen, setControlsOpen] = useState(true);
@@ -215,10 +215,20 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     try {
       setCronHealth(prev => ({...prev, status: "Syncing..."}));
       await fetchApi('/adminme/force-sync', { method: 'POST' });
-      toast.success("Sync complete!");
-      fetchApi('/adminme/cron-health').then(setCronHealth);
+      toast.info("Sync started in background! This may take up to a minute...");
+      
+      const poll = setInterval(async () => {
+        const res = await fetchApi('/adminme/cron-health');
+        setCronHealth(res);
+        if (res.status === 'Success' || res.status === 'Failed') {
+          clearInterval(poll);
+          if (res.status === 'Success') toast.success("Sync finished successfully!");
+          else toast.error("Sync failed: " + res.message);
+        }
+      }, 3000);
+      
     } catch (e: any) {
-      toast.error(e.message || "Sync failed");
+      toast.error(e.message || "Failed to start sync");
       fetchApi('/adminme/cron-health').then(setCronHealth);
     }
   };
@@ -245,6 +255,14 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     <span className="opacity-70">Last Sync:</span>
                     <span className="font-bold opacity-90">{cronHealth.lastSync ? new Date(cronHealth.lastSync).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Never'}</span>
                   </div>
+                  {cronHealth.invalidAccounts && cronHealth.invalidAccounts.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-base-300">
+                      <span className="text-error font-bold text-[10px] uppercase block mb-1">Invalid Lichess Accounts ({cronHealth.invalidAccounts.length}):</span>
+                      <div className="text-[10px] opacity-80 max-h-24 overflow-y-auto space-y-1">
+                        {cronHealth.invalidAccounts.map((acc, i) => <div key={i} className="bg-error/10 px-1.5 py-0.5 rounded border border-error/20">{acc}</div>)}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-between text-sm font-bold px-1 opacity-80 bg-base-200 p-2 rounded-lg">
