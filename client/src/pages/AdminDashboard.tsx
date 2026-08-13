@@ -188,6 +188,11 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             <div className="card-body p-4 space-y-3 pt-5">
               <h2 className="card-title text-error text-xl font-bold border-b border-base-200 pb-2">Admin Controls</h2>
               
+              <div className="flex justify-between text-sm font-bold px-1 opacity-80 bg-base-200 p-2 rounded-lg">
+                <span>Teams: <span className="text-primary">{teams.length}</span></span>
+                <span>Students: <span className="text-secondary">{teams.reduce((acc, t) => acc + (t.members?.filter((m:any) => m).length || 0), 0)}</span></span>
+              </div>
+              
               <div className="flex flex-col gap-2">
               <button onClick={handleExportCSV} className="btn btn-sm btn-info w-full text-info-content shadow-lg shadow-info/20">📥 Export CSV</button>
               <button onClick={handleRegroup} className="btn btn-sm btn-warning w-full shadow-lg shadow-warning/20">☢️ Nuclear Regroup</button>
