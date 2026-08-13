@@ -5,6 +5,12 @@ import { eq } from "drizzle-orm";
 
 export const cronRouter = Router();
 
+export let lastCronHealth = {
+    lastSync: null as string | null,
+    status: "Never run" as string,
+    message: ""
+};
+
 cronRouter.post("/sync-lichess", async (req, res) => {
     const authHeader = req.headers.authorization;
     if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -101,8 +107,14 @@ cronRouter.post("/sync-lichess", async (req, res) => {
             await new Promise(resolve => setTimeout(resolve, 200));
         }
 
+        lastCronHealth.lastSync = new Date().toISOString();
+        lastCronHealth.status = "Success";
+        lastCronHealth.message = "Sync complete";
         res.json({ success: true, message: "Sync complete" });
     } catch (error: any) {
+        lastCronHealth.lastSync = new Date().toISOString();
+        lastCronHealth.status = "Failed";
+        lastCronHealth.message = error.message || "Unknown error";
         res.status(500).json({ error: error.message });
     }
 });

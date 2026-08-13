@@ -180,3 +180,8 @@ adminRouter.get("/feedbacks", async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+import { lastCronHealth } from "./cron";
+adminRouter.get("/cron-health", (req, res) => {
+    res.json(lastCronHealth);
+});

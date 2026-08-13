@@ -67,6 +67,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [isDragging, setIsDragging] = useState(false);
   const [canvasLocked, setCanvasLocked] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [cronHealth, setCronHealth] = useState({ status: "Unknown", lastSync: null as string | null, message: "" });
   
   // Panel toggles
   const [controlsOpen, setControlsOpen] = useState(true);
@@ -78,7 +79,8 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     Promise.all([
       fetchTeams(),
       fetchApi('/adminme/feedbacks').then(setFeedbacks),
-      fetchApi('/adminme/settings').then(s => setSettings({ advanced: s.advancedThreshold, mid: s.midThreshold, registrationOpen: s.registrationOpen }))
+      fetchApi('/adminme/settings').then(s => setSettings({ advanced: s.advancedThreshold, mid: s.midThreshold, registrationOpen: s.registrationOpen })),
+      fetchApi('/adminme/cron-health').then(setCronHealth).catch(() => {})
     ]).then(() => setLoading(false));
   }, []);
 
@@ -219,6 +221,17 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             <div className="card-body p-4 space-y-3 pt-5">
               <h2 className="card-title text-error text-xl font-bold border-b border-base-200 pb-2">Admin Controls</h2>
               
+              <div className="flex flex-col gap-1 bg-base-200 p-2 rounded-lg text-xs font-medium">
+                <div className="flex justify-between items-center">
+                  <span className="opacity-70">Lichess Sync Status:</span>
+                  <span className={`badge badge-xs ${cronHealth.status === 'Success' ? 'badge-success' : cronHealth.status === 'Failed' ? 'badge-error' : 'badge-warning'}`}>{cronHealth.status}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="opacity-70">Last Sync:</span>
+                  <span className="font-bold opacity-90">{cronHealth.lastSync ? new Date(cronHealth.lastSync).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Never'}</span>
+                </div>
+              </div>
+
               <div className="flex justify-between text-sm font-bold px-1 opacity-80 bg-base-200 p-2 rounded-lg">
                 <span>Teams: <span className="text-primary">{teams.length}</span></span>
                 <span>Students: <span className="text-secondary">{teams.reduce((acc, t) => acc + (t.members?.filter((m:any) => m).length || 0), 0)}</span></span>
