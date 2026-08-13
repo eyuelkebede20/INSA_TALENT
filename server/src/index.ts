@@ -50,7 +50,7 @@ app.all("/api/auth/*catchall", toNodeHandler(auth));
 
 // Custom Routes
 app.use("/api/students", studentRouter);
-app.use("/api/admin", adminRouter);
+app.use("/api/adminme", adminRouter);
 app.use("/api/cron", cronRouter);
 app.use("/api", publicRouter);
 

@@ -16,7 +16,7 @@ function AdminDashboard() {
     e.preventDefault();
     setLoading(true);
     try {
-      await fetchApi("/admin/login", {
+      await fetchApi("/adminme/login", {
         method: "POST",
         body: JSON.stringify({ password })
       });
@@ -400,7 +400,7 @@ function App() {
         <Routes>
           <Route path="/" element={<PublicCanvas />} />
           <Route path="/leaderboards" element={<div className="max-w-7xl mx-auto px-4 mt-8 h-full"><Leaderboards /></div>} />
-          <Route path="/admin" element={<div className="max-w-7xl mx-auto px-4 mt-8 h-full"><AdminDashboard /></div>} />
+          <Route path="/adminme" element={<div className="max-w-7xl mx-auto px-4 mt-8 h-full"><AdminDashboard /></div>} />
           <Route path="/student" element={<div className="max-w-7xl mx-auto px-4 mt-8 h-full"><StudentFlow /></div>} />
         </Routes>
       </main>

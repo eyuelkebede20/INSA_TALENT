@@ -61,13 +61,13 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [controlsOpen, setControlsOpen] = useState(true);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
-  const fetchTeams = () => fetchApi('/admin/teams').then(setTeams);
+  const fetchTeams = () => fetchApi('/adminme/teams').then(setTeams);
 
   useEffect(() => {
     Promise.all([
       fetchTeams(),
-      fetchApi('/admin/feedbacks').then(setFeedbacks),
-      fetchApi('/admin/settings').then(s => setSettings({ advanced: s.advancedThreshold, mid: s.midThreshold, registrationOpen: s.registrationOpen }))
+      fetchApi('/adminme/feedbacks').then(setFeedbacks),
+      fetchApi('/adminme/settings').then(s => setSettings({ advanced: s.advancedThreshold, mid: s.midThreshold, registrationOpen: s.registrationOpen }))
     ]).then(() => setLoading(false));
   }, []);
 
@@ -96,7 +96,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     setTeams(newTeams);
 
     try {
-      await fetchApi('/admin/reassign', { method: 'POST', body: JSON.stringify({ player_id: playerId, target_team_id: targetTeamId }) });
+      await fetchApi('/adminme/reassign', { method: 'POST', body: JSON.stringify({ player_id: playerId, target_team_id: targetTeamId }) });
       toast.success("Player moved!");
     } catch (err: any) {
       toast.error(err.message || "Failed to reassign player");
@@ -107,7 +107,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const handleDelete = async (playerId: string) => {
     if(!confirm("Delete player? They will be removed from the system completely.")) return;
     try {
-      await fetchApi(`/admin/players/${playerId}`, { method: 'DELETE' });
+      await fetchApi(`/adminme/players/${playerId}`, { method: 'DELETE' });
       toast.success("Player deleted");
       fetchTeams();
     } catch (err: any) {
@@ -118,7 +118,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const updateSettings = async (e: any) => {
     e.preventDefault();
     try {
-      await fetchApi('/admin/settings', { method: 'POST', body: JSON.stringify({ advanced_threshold: settings.advanced, mid_threshold: settings.mid, registration_open: settings.registrationOpen }) });
+      await fetchApi('/adminme/settings', { method: 'POST', body: JSON.stringify({ advanced_threshold: settings.advanced, mid_threshold: settings.mid, registration_open: settings.registrationOpen }) });
       toast.success("Settings Updated!");
       fetchTeams();
     } catch (err: any) {
@@ -130,7 +130,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const newState = !settings.registrationOpen;
     setSettings({ ...settings, registrationOpen: newState });
     try {
-      await fetchApi('/admin/settings', { method: 'POST', body: JSON.stringify({ advanced_threshold: settings.advanced, mid_threshold: settings.mid, registration_open: newState }) });
+      await fetchApi('/adminme/settings', { method: 'POST', body: JSON.stringify({ advanced_threshold: settings.advanced, mid_threshold: settings.mid, registration_open: newState }) });
       toast.success(`Registration ${newState ? 'Opened' : 'Closed'}!`);
     } catch (err: any) {
       setSettings({ ...settings, registrationOpen: !newState }); // Revert
@@ -143,7 +143,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     
     setLoading(true);
     try {
-      await fetchApi('/admin/regroup', { method: 'POST' });
+      await fetchApi('/adminme/regroup', { method: 'POST' });
       toast.success("Everyone has been regrouped!");
       fetchTeams();
     } catch (err: any) {
@@ -154,13 +154,13 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   };
 
   const handleLogout = async () => {
-    await fetchApi('/admin/logout', { method: 'POST' });
+    await fetchApi('/adminme/logout', { method: 'POST' });
     onLogout();
   };
 
   const handleExportCSV = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/export-csv`, { credentials: "include" });
+      const res = await fetch(`${API_BASE_URL}/adminme/export-csv`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to export CSV");
       
       const blob = await res.blob();
