@@ -5,18 +5,19 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { TransformWrapper, TransformComponent, useTransformContext } from 'react-zoom-pan-pinch';
 
 const DraggablePlayer = ({ m, index, handleDelete }: any) => {
-  const { transformState } = useTransformContext();
+  const transformCtx: any = useTransformContext();
+  const scale = transformCtx?.transformState?.scale || 1;
   
   return (
     <Draggable draggableId={m.id} index={index}>
       {(provided, snapshot) => {
-        let style = { ...provided.draggableProps.style };
+        let style: any = { ...provided.draggableProps.style };
         // Fix for drag offset inside scaled container
         if (snapshot.isDragging && style.transform) {
           const match = style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
           if (match) {
-            const x = parseFloat(match[1]) / transformState.scale;
-            const y = parseFloat(match[2]) / transformState.scale;
+            const x = parseFloat(match[1]) / scale;
+            const y = parseFloat(match[2]) / scale;
             style.transform = `translate(${x}px, ${y}px)`;
           }
         }
