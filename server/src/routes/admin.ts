@@ -181,7 +181,16 @@ adminRouter.get("/feedbacks", async (req, res) => {
     }
 });
 
-import { lastCronHealth } from "./cron";
+import { lastCronHealth, runLichessSync } from "./cron";
 adminRouter.get("/cron-health", (req, res) => {
     res.json(lastCronHealth);
+});
+
+adminRouter.post("/force-sync", async (req, res) => {
+    try {
+        await runLichessSync();
+        res.json({ success: true });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
 });

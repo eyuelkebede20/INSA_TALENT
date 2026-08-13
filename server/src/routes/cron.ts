@@ -11,13 +11,7 @@ export let lastCronHealth = {
     message: ""
 };
 
-cronRouter.post("/sync-lichess", async (req, res) => {
-    const authHeader = req.headers.authorization;
-    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        res.status(401).json({ error: "Unauthorized cron access" });
-        return;
-    }
-
+export async function runLichessSync() {
     try {
         const allPlayers = await db.select().from(players);
         
@@ -110,11 +104,26 @@ cronRouter.post("/sync-lichess", async (req, res) => {
         lastCronHealth.lastSync = new Date().toISOString();
         lastCronHealth.status = "Success";
         lastCronHealth.message = "Sync complete";
-        res.json({ success: true, message: "Sync complete" });
+        return { success: true, message: "Sync complete" };
     } catch (error: any) {
         lastCronHealth.lastSync = new Date().toISOString();
         lastCronHealth.status = "Failed";
         lastCronHealth.message = error.message || "Unknown error";
+        throw error;
+    }
+}
+
+cronRouter.post("/sync-lichess", async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        res.status(401).json({ error: "Unauthorized cron access" });
+        return;
+    }
+
+    try {
+        const result = await runLichessSync();
+        res.json(result);
+    } catch (error: any) {
         res.status(500).json({ error: error.message });
     }
 });

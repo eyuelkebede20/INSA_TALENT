@@ -211,6 +211,18 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     }
   };
 
+  const handleForceSync = async () => {
+    try {
+      setCronHealth(prev => ({...prev, status: "Syncing..."}));
+      const res = await fetchApi('/adminme/force-sync', { method: 'POST' });
+      toast.success("Sync complete!");
+      fetchApi('/adminme/cron-health').then(setCronHealth);
+    } catch (e: any) {
+      toast.error(e.message || "Sync failed");
+      fetchApi('/adminme/cron-health').then(setCronHealth);
+    }
+  };
+
   return (
     <div className="absolute inset-0 z-40 bg-base-200 overflow-hidden">
       {/* Floating Bottom-Right Panels */}
@@ -227,11 +239,16 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 <div className="flex flex-col gap-1 bg-base-200 p-2 rounded-lg text-xs font-medium">
                   <div className="flex justify-between items-center">
                     <span className="opacity-70">Lichess Sync Status:</span>
-                    <span className={`badge badge-xs ${cronHealth.status === 'Success' ? 'badge-success' : cronHealth.status === 'Failed' ? 'badge-error' : 'badge-warning'}`}>{cronHealth.status}</span>
+                    <span className={`badge badge-xs ${cronHealth.status === 'Success' ? 'badge-success' : cronHealth.status === 'Failed' ? 'badge-error' : cronHealth.status === 'Syncing...' ? 'badge-info animate-pulse' : 'badge-warning'}`}>{cronHealth.status}</span>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center mt-1">
                     <span className="opacity-70">Last Sync:</span>
-                    <span className="font-bold opacity-90">{cronHealth.lastSync ? new Date(cronHealth.lastSync).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Never'}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold opacity-90">{cronHealth.lastSync ? new Date(cronHealth.lastSync).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Never'}</span>
+                      <button onClick={handleForceSync} disabled={cronHealth.status === 'Syncing...'} className="btn btn-xs btn-outline btn-primary rounded-full px-2" title="Force Sync Now">
+                        ⟲
+                      </button>
+                    </div>
                   </div>
                 </div>
 
