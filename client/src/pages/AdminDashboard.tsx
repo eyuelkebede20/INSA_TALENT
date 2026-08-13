@@ -243,12 +243,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   </div>
                   <div className="flex justify-between items-center mt-1">
                     <span className="opacity-70">Last Sync:</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold opacity-90">{cronHealth.lastSync ? new Date(cronHealth.lastSync).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Never'}</span>
-                      <button onClick={handleForceSync} disabled={cronHealth.status === 'Syncing...'} className="btn btn-xs btn-outline btn-primary rounded-full px-2" title="Force Sync Now">
-                        ⟲
-                      </button>
-                    </div>
+                    <span className="font-bold opacity-90">{cronHealth.lastSync ? new Date(cronHealth.lastSync).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Never'}</span>
                   </div>
                 </div>
 
@@ -260,7 +255,12 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 <div className="flex flex-col gap-2">
                 <button onClick={handleExportCSV} className="btn btn-sm btn-info w-full text-info-content shadow-lg shadow-info/20">📥 Export CSV</button>
                 <button onClick={handleRegroup} className="btn btn-sm btn-warning w-full shadow-lg shadow-warning/20">☢️ Nuclear Regroup</button>
-                <button onClick={handleLogout} className="btn btn-sm btn-outline btn-error w-full">Logout</button>
+                <div className="flex gap-2 w-full">
+                  <button onClick={handleForceSync} disabled={cronHealth.status === 'Syncing...'} className="btn btn-sm btn-primary flex-1 shadow-lg shadow-primary/20">
+                    {cronHealth.status === 'Syncing...' ? <span className="loading loading-spinner loading-xs"></span> : '🔄 Sync Lichess'}
+                  </button>
+                  <button onClick={handleLogout} className="btn btn-sm btn-outline btn-error flex-1">Logout</button>
+                </div>
               </div>
                 
                 <div className="form-control bg-base-200 rounded-lg p-2 mt-2">
