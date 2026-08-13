@@ -214,7 +214,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const handleForceSync = async () => {
     try {
       setCronHealth(prev => ({...prev, status: "Syncing..."}));
-      const res = await fetchApi('/adminme/force-sync', { method: 'POST' });
+      await fetchApi('/adminme/force-sync', { method: 'POST' });
       toast.success("Sync complete!");
       fetchApi('/adminme/cron-health').then(setCronHealth);
     } catch (e: any) {
