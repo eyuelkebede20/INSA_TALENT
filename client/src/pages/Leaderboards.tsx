@@ -116,6 +116,7 @@ export default function Leaderboards() {
                     <th>Rank</th>
                     <th>Name</th>
                     <th>Tier</th>
+                    <th className="text-right">Games Today</th>
                     <th className="text-right">Rating</th>
                   </tr>
                 </thead>
@@ -142,13 +143,14 @@ export default function Leaderboards() {
                             {s.tier}
                           </div>
                         </td>
+                        <td className="text-right font-bold opacity-80">{s.games_played_today}</td>
                         <td className="text-right font-bold text-secondary text-lg">{s.current_rating}</td>
                       </tr>
                     );
                   })}
                   {filteredStudents.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="py-10 text-center text-base-content/50">No students match your search.</td>
+                      <td colSpan={5} className="py-10 text-center text-base-content/50">No students match your search.</td>
                     </tr>
                   )}
                 </tbody>
