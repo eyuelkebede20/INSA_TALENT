@@ -73,6 +73,7 @@ function StudentFlow() {
   const [profile, setProfile] = useState<any>(null);
   const [feedback, setFeedback] = useState("");
   const [feedbackSending, setFeedbackSending] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -115,14 +116,21 @@ function StudentFlow() {
             <p className="text-base-content/70 mb-6">Sign in with your Google account to join a team.</p>
             <button 
               onClick={async () => {
-                await signIn.social({ 
-                  provider: 'google', 
-                  callbackURL: `${window.location.origin}/student` 
-                });
+                setGoogleLoading(true);
+                try {
+                  const res = await signIn.social({ 
+                    provider: 'google', 
+                    callbackURL: `${window.location.origin}/student` 
+                  });
+                  if (res?.error) setGoogleLoading(false);
+                } catch (e) {
+                  setGoogleLoading(false);
+                }
               }}
               className="btn btn-primary w-full"
+              disabled={googleLoading}
             >
-              Sign in with Google
+              {googleLoading ? <span className="loading loading-spinner"></span> : "Sign in with Google"}
             </button>
           </div>
         </div>
@@ -315,6 +323,7 @@ function StudentFlow() {
 function App() {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const { data: session } = useSession();
+  const [navLoginLoading, setNavLoginLoading] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -357,14 +366,21 @@ function App() {
               <li>
                 <button 
                   className="btn btn-primary btn-sm mt-1"
+                  disabled={navLoginLoading}
                   onClick={async () => {
-                    await signIn.social({ 
-                      provider: 'google', 
-                      callbackURL: `${window.location.origin}/student` 
-                    });
+                    setNavLoginLoading(true);
+                    try {
+                      const res = await signIn.social({ 
+                        provider: 'google', 
+                        callbackURL: `${window.location.origin}/student` 
+                      });
+                      if (res?.error) setNavLoginLoading(false);
+                    } catch (e) {
+                      setNavLoginLoading(false);
+                    }
                   }}
                 >
-                  Student Login
+                  {navLoginLoading ? <span className="loading loading-spinner loading-xs"></span> : "Student Login"}
                 </button>
               </li>
             )}

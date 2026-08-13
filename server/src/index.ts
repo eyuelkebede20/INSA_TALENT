@@ -39,13 +39,7 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(null, allowedOrigins[1]); // Fallback to Vercel
-    }
-  },
+  origin: true,
   credentials: true
 }));
 app.use(express.json());
