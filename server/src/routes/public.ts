@@ -77,7 +77,7 @@ publicRouter.get("/leaderboard/teams/rating", async (req, res) => {
                 COALESCE(SUM(ds.wins), 0) - COALESCE(SUM(ds.losses), 0) as total_rating
             FROM teams t
             JOIN players p ON p.team_id = t.id
-            LEFT JOIN player_daily_stats ds ON ds.player_id = p.id AND ds.recorded_at >= CURRENT_DATE
+            LEFT JOIN player_daily_stats ds ON ds.player_id = p.id
             GROUP BY t.team_number
             ORDER BY total_rating DESC, total_wins DESC
         `);

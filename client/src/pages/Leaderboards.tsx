@@ -199,8 +199,8 @@ export default function Leaderboards() {
                   <tr className="text-base-content/60 text-sm uppercase tracking-wider border-b-2 border-base-300">
                     <th>Rank</th>
                     <th>Team</th>
-                    <th className="text-right">Daily Wins</th>
-                    <th className="text-right">Daily Losses</th>
+                    <th className="text-right">Total Wins</th>
+                    <th className="text-right">Total Losses</th>
                     <th className="text-right">Net Score</th>
                   </tr>
                 </thead>
