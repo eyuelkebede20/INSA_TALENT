@@ -31,8 +31,11 @@ export async function runLichessSync() {
                 let dailyLosses = 0;
                 let dailyDraws = 0;
 
-                if (player.lichessUsername) {
-                    const response = await fetch(`https://lichess.org/api/user/${player.lichessUsername}`);
+                const cleanLichessUser = player.lichessUsername?.replace(/^@+/, '').trim();
+                const cleanChesscomUser = player.chesscomUsername?.replace(/^@+/, '').trim();
+
+                if (cleanLichessUser) {
+                    const response = await fetch(`https://lichess.org/api/user/${cleanLichessUser}`);
                     if (response.ok) {
                         const data = await response.json();
                         const perfs = data.perfs || {};
@@ -59,15 +62,15 @@ export async function runLichessSync() {
                         currentLichessLosses = totalLosses;
                         currentLichessDraws = totalDraws;
                     } else if (response.status === 404) {
-                        lastCronHealth.invalidAccounts.push(`${player.realName} (${player.lichessUsername})`);
+                        lastCronHealth.invalidAccounts.push(`${player.realName} (${cleanLichessUser})`);
                     } else if (response.status === 429) {
                         // Rate limited! wait longer
                         await new Promise(resolve => setTimeout(resolve, 2000));
                     }
                 }
 
-                if (player.chesscomUsername) {
-                    const response = await fetch(`https://api.chess.com/pub/player/${player.chesscomUsername}/stats`);
+                if (cleanChesscomUser) {
+                    const response = await fetch(`https://api.chess.com/pub/player/${cleanChesscomUser}/stats`);
                     if (response.ok) {
                         const data = await response.json();
                         const getChesscomGames = (perf: any) => (perf?.record?.win || 0) + (perf?.record?.loss || 0) + (perf?.record?.draw || 0);
