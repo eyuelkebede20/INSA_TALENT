@@ -182,8 +182,35 @@ adminRouter.get("/feedbacks", async (req, res) => {
 });
 
 import { lastCronHealth, runLichessSync } from "./cron";
-adminRouter.get("/cron-health", (req, res) => {
-    res.json(lastCronHealth);
+adminRouter.get("/cron-health", async (req, res) => {
+    try {
+        const settingsRes = await db.execute(sql`SELECT last_sync_at FROM event_settings LIMIT 1`);
+        let persistedLastSync = settingsRes[0]?.last_sync_at;
+        
+        // If in-memory status says "never run" but we have a date in DB, we know it ran before restart
+        let responseHealth = { ...lastCronHealth };
+        
+        if (persistedLastSync && !responseHealth.lastSync) {
+            responseHealth.lastSync = persistedLastSync;
+            responseHealth.status = "Success (From DB)";
+            responseHealth.message = "Loaded from previous run";
+        } else if (responseHealth.lastSync && !persistedLastSync) {
+            // Update the DB if memory is ahead
+            await db.execute(sql`UPDATE event_settings SET last_sync_at = ${responseHealth.lastSync}`);
+        } else if (responseHealth.lastSync && persistedLastSync) {
+            // Both exist, use the most recent one.
+            const memTime = new Date(responseHealth.lastSync).getTime();
+            const dbTime = new Date(persistedLastSync).getTime();
+            
+            if (dbTime > memTime) {
+                responseHealth.lastSync = persistedLastSync;
+            }
+        }
+        
+        res.json(responseHealth);
+    } catch (err) {
+        res.json(lastCronHealth);
+    }
 });
 
 adminRouter.post("/force-sync", (req, res) => {

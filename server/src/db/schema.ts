@@ -55,6 +55,7 @@ export const eventSettings = pgTable('event_settings', {
   advancedThreshold: integer('advanced_threshold').default(1200).notNull(),
   midThreshold: integer('mid_threshold').default(600).notNull(),
   registrationOpen: boolean('registration_open').default(true).notNull(),
+  lastSyncAt: timestamp('last_sync_at'),
 });
 
 export const teams = pgTable('teams', {
