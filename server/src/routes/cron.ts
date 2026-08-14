@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { players, playerDailyStats } from "../db/schema";
+import { players, playerDailyStats, eventSettings } from "../db/schema";
 import { eq, sql } from "drizzle-orm";
 
 export const cronRouter = Router();
@@ -108,10 +108,15 @@ export async function runLichessSync() {
             await new Promise(resolve => setTimeout(resolve, 400));
         }
 
-        const syncTime = new Date().toISOString();
-        await db.execute(sql`UPDATE event_settings SET last_sync_at = ${syncTime}`);
+        const syncTime = new Date();
+        const existingSettings = await db.select().from(eventSettings).limit(1);
+        if (existingSettings.length === 0) {
+            await db.insert(eventSettings).values({ lastSyncAt: syncTime });
+        } else {
+            await db.update(eventSettings).set({ lastSyncAt: syncTime }).where(eq(eventSettings.id, existingSettings[0].id));
+        }
 
-        lastCronHealth.lastSync = syncTime;
+        lastCronHealth.lastSync = syncTime.toISOString();
         lastCronHealth.status = "Success";
         lastCronHealth.message = "Sync complete";
         return { success: true, message: "Sync complete" };
