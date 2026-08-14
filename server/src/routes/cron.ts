@@ -88,27 +88,26 @@ export async function runLichessSync() {
                     newRating = Math.max(lichessRating, chesscomRating);
                 }
 
-                await db.update(players).set({ 
-                    currentRating: newRating,
-                    lichessWins: currentLichessWins,
-                    lichessLosses: currentLichessLosses,
-                    lichessDraws: currentLichessDraws
-                }).where(eq(players.id, player.id));
-
-                if (dailyWins > 0 || dailyLosses > 0 || dailyDraws > 0) {
-                    await db.insert(playerDailyStats).values({
+                await Promise.all([
+                    db.update(players).set({ 
+                        currentRating: newRating,
+                        lichessWins: currentLichessWins,
+                        lichessLosses: currentLichessLosses,
+                        lichessDraws: currentLichessDraws
+                    }).where(eq(players.id, player.id)),
+                    (dailyWins > 0 || dailyLosses > 0 || dailyDraws > 0) ? db.insert(playerDailyStats).values({
                         playerId: player.id,
                         rating: lichessRating || player.currentRating,
                         wins: dailyWins,
                         losses: dailyLosses,
                         draws: dailyDraws
-                    });
-                }
+                    }) : Promise.resolve()
+                ]);
             } catch (err) {
                 console.error(`Failed to fetch for ${player.lichessUsername}`, err);
             }
-            // 400ms delay to respect Lichess API limits safely (max 5 requests per second is 200ms, but network jitter can cause 429)
-            await new Promise(resolve => setTimeout(resolve, 400));
+            // 200ms delay is the absolute minimum safe limit to respect Lichess's 5 req/sec limit
+            await new Promise(resolve => setTimeout(resolve, 200));
         }
 
         const syncTime = new Date();
