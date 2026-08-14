@@ -140,9 +140,9 @@ studentRouter.post("/complete-profile", async (req, res) => {
                 teamId = newTeam[0].id;
             } else {
                 const maxCap = 11;
-                const countRes = await tx.execute(sql`SELECT COUNT(*) as count FROM players WHERE team_id = ${teamId} AND tier = ${newTier}`);
+                const countRes = await tx.execute(sql`SELECT COUNT(*) as count FROM players WHERE team_id = ${teamId}`);
                 if (Number(countRes[0]?.count || 0) >= maxCap) {
-                    throw new Error(`Team ${group_number} is already full for ${newTier} players.`);
+                    throw new Error(`Team ${group_number} is already full (maximum 11 players).`);
                 }
             }
 
