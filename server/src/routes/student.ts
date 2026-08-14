@@ -33,9 +33,10 @@ studentRouter.post("/complete-profile", async (req, res) => {
         }
 
         const sanitizeText = (str: any) => typeof str === 'string' ? str.replace(/[<>'"]/g, '').trim() : str;
+        const cleanUsername = (str: any) => typeof str === 'string' ? str.replace(/^@+/, '').replace(/[<>'"]/g, '').trim() : str;
         
-        const lichess_username = sanitizeText(req.body.lichess_username);
-        const chesscom_username = sanitizeText(req.body.chesscom_username);
+        const lichess_username = cleanUsername(req.body.lichess_username);
+        const chesscom_username = cleanUsername(req.body.chesscom_username);
         const insa_code = sanitizeText(req.body.insa_code);
         const { manual_rating, group_number } = req.body;
         if (!group_number) {
