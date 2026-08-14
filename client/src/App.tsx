@@ -74,6 +74,9 @@ function StudentFlow() {
   const [feedback, setFeedback] = useState("");
   const [feedbackSending, setFeedbackSending] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [editingLichess, setEditingLichess] = useState(false);
+  const [newLichess, setNewLichess] = useState("");
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -181,6 +184,25 @@ function StudentFlow() {
     }
   };
 
+  const handleUpdateLichess = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newLichess) return;
+    setUpdateLoading(true);
+    try {
+        await fetchApi("/students/update-lichess", {
+            method: "POST",
+            body: JSON.stringify({ lichess_username: newLichess })
+        });
+        toast.success("Lichess username updated! The admins will sync it soon.");
+        setProfile({...profile, lichess_username: newLichess});
+        setEditingLichess(false);
+    } catch (err: any) {
+        toast.error(err.message || "Failed to update username");
+    } finally {
+        setUpdateLoading(false);
+    }
+  };
+
   const handleFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!feedback.trim()) return;
@@ -209,6 +231,21 @@ function StudentFlow() {
             <p className="text-base-content/70 mb-4">You are officially in the system!</p>
             
             <div className="bg-base-200 p-4 rounded-xl border border-base-300 space-y-2 mb-6">
+              <div className="flex flex-col gap-2 border-b border-base-300 pb-2 mb-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold opacity-60">Lichess Account</span>
+                  <span className="font-bold">{profile.lichess_username || 'None'}</span>
+                </div>
+                {!editingLichess ? (
+                    <button onClick={() => { setEditingLichess(true); setNewLichess(profile.lichess_username || ""); }} className="btn btn-xs btn-outline w-full">Edit Lichess Username</button>
+                ) : (
+                    <form onSubmit={handleUpdateLichess} className="flex gap-2 w-full mt-1">
+                        <input type="text" value={newLichess} onChange={e => setNewLichess(e.target.value)} className="input input-bordered input-sm flex-1" placeholder="New Lichess username" />
+                        <button type="submit" className="btn btn-sm btn-primary" disabled={updateLoading}>Save</button>
+                        <button type="button" onClick={() => setEditingLichess(false)} className="btn btn-sm">Cancel</button>
+                    </form>
+                )}
+              </div>
               <div className="flex justify-between">
                 <span className="font-bold opacity-60">Team</span>
                 <span className="font-bold text-lg">Team {profile.team_number || 'Pending'}</span>

@@ -208,3 +208,25 @@ studentRouter.post("/feedback", async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+studentRouter.post("/update-lichess", async (req, res) => {
+    try {
+        const authSession = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
+        if (!authSession?.user) return res.status(401).json({ error: "Unauthorized" });
+
+        const newLichess = typeof req.body.lichess_username === 'string' 
+            ? req.body.lichess_username.replace(/^@+/, '').replace(/[<>'"]/g, '').trim() 
+            : null;
+            
+        if (!newLichess) return res.status(400).json({ error: "Invalid username" });
+
+        const playerRes = await db.select().from(players).where(eq(players.googleId, authSession.user.id));
+        if (playerRes.length === 0) return res.status(404).json({ error: "Profile not found" });
+
+        await db.update(players).set({ lichessUsername: newLichess }).where(eq(players.id, playerRes[0].id));
+        
+        res.json({ success: true, newUsername: newLichess });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
+});
