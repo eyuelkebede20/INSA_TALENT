@@ -23,12 +23,21 @@ const DraggablePlayer = ({ m, index, handleDelete }: any) => {
       {(provided, snapshot) => {
         let style: any = { ...provided.draggableProps.style };
         // Fix for drag offset inside scaled container
-        if (snapshot.isDragging && style.transform) {
-          const match = style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-          if (match) {
-            const x = parseFloat(match[1]) / scale;
-            const y = parseFloat(match[2]) / scale;
-            style.transform = `translate(${x}px, ${y}px)`;
+        if (snapshot.isDragging) {
+          const { positionX, positionY, scale } = transformCtx.transformState;
+          
+          if (style.top !== undefined && style.left !== undefined) {
+             style.top = (parseFloat(style.top) - positionY) / scale;
+             style.left = (parseFloat(style.left) - positionX) / scale;
+          }
+
+          if (style.transform) {
+            const match = style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+            if (match) {
+              const x = parseFloat(match[1]) / scale;
+              const y = parseFloat(match[2]) / scale;
+              style.transform = `translate(${x}px, ${y}px)`;
+            }
           }
         }
         
