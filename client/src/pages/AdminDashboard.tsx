@@ -2,44 +2,24 @@ import { useEffect, useState } from 'react';
 import { fetchApi, API_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { TransformWrapper, TransformComponent, useTransformContext, useControls } from 'react-zoom-pan-pinch';
 
-const SearchZoomer = ({ filteredTeams }: { filteredTeams: any[] }) => {
-  const { zoomToElement } = useControls();
+const AutoScroller = ({ filteredTeams }: { filteredTeams: any[] }) => {
   useEffect(() => {
     if (filteredTeams.length === 1) {
-      zoomToElement(`team-card-${filteredTeams[0].id}`, 1.5, 500);
+      const el = document.getElementById(`team-card-${filteredTeams[0].id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'center' });
+      }
     }
-  }, [filteredTeams, zoomToElement]);
+  }, [filteredTeams]);
   return null;
 };
 
 const DraggablePlayer = ({ m, index, handleDelete }: any) => {
-  const transformCtx: any = useTransformContext();
-  const scale = transformCtx?.transformState?.scale || 1;
-  
   return (
     <Draggable draggableId={m.id} index={index}>
       {(provided, snapshot) => {
         let style: any = { ...provided.draggableProps.style };
-        // Fix for drag offset inside scaled container
-        if (snapshot.isDragging) {
-          const { positionX, positionY, scale } = transformCtx.transformState;
-          
-          if (style.top !== undefined && style.left !== undefined) {
-             style.top = (parseFloat(style.top) - positionY) / scale;
-             style.left = (parseFloat(style.left) - positionX) / scale;
-          }
-
-          if (style.transform) {
-            const match = style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-            if (match) {
-              const x = parseFloat(match[1]) / scale;
-              const y = parseFloat(match[2]) / scale;
-              style.transform = `translate(${x}px, ${y}px)`;
-            }
-          }
-        }
         
         return (
           <div
@@ -74,7 +54,6 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [settings, setSettings] = useState({ advanced: 1200, mid: 600, registrationOpen: true });
   const [loading, setLoading] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
-  const [canvasLocked, setCanvasLocked] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [cronHealth, setCronHealth] = useState({ status: "Unknown", lastSync: null as string | null, message: "", invalidAccounts: [] as string[] });
   
@@ -371,8 +350,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         </div>
       </div>
 
-      {/* Infinite Canvas */}
-      <div className="absolute inset-0 w-full h-full bg-base-200" style={{ backgroundImage: 'radial-gradient(#base-300 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
+      <div className="absolute inset-0 w-full h-full pt-20 pb-10 overflow-auto">
         {loading ? (
           <div className="w-full h-full flex justify-center items-center">
             <span className="loading loading-dots loading-lg text-primary"></span>
@@ -385,29 +363,9 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               handleDragEnd(result);
             }}
           >
-            <TransformWrapper 
-              initialScale={0.8} 
-              minScale={0.1} 
-              maxScale={4} 
-              centerOnInit 
-              limitToBounds={false} 
-              centerZoomedOut={false}
-              panning={{ disabled: canvasLocked || isDragging }}
-            >
-              {({ zoomIn, zoomOut, resetTransform }) => (
-                <>
-                  <SearchZoomer filteredTeams={filteredTeams} />
-                  <div className="absolute top-4 right-4 z-50 flex flex-col gap-2 bg-base-100/90 p-2 rounded-xl shadow-lg border border-base-300 backdrop-blur-md pointer-events-auto hidden md:flex">
-                    <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomIn()} title="Zoom In">+</button>
-                    <button className="btn btn-sm btn-square btn-ghost" onClick={() => zoomOut()} title="Zoom Out">-</button>
-                    <button className="btn btn-sm btn-square btn-ghost" onClick={() => resetTransform()} title="Reset">⟲</button>
-                    <button className={`btn btn-sm btn-square ${canvasLocked ? 'btn-error bg-error/20 text-error' : 'btn-ghost'}`} onClick={() => setCanvasLocked(!canvasLocked)} title={canvasLocked ? "Unlock Canvas" : "Lock Canvas"}>
-                      {canvasLocked ? '🔒' : '🔓'}
-                    </button>
-                  </div>
-                  
-                  <TransformComponent wrapperClass="!w-full !h-full !absolute !inset-0 cursor-grab active:cursor-grabbing" contentClass="p-[1000px] w-full h-full flex items-center justify-center">
-                    <div className="flex flex-wrap gap-8 justify-center min-w-[3000px]">
+             <AutoScroller filteredTeams={filteredTeams} />
+             <div className="px-8 pb-12 w-max min-w-full">
+                <div className="flex gap-6 items-start">
                       {filteredTeams.map((t: any) => {
                         const validMembers = (t.members?.filter((m: any) => m) || []).sort((a: any, b: any) => {
                           const tierWeight: any = { ADVANCED: 3, MID: 2, BEGINNER: 1 };
@@ -448,13 +406,12 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                       })}
                       
                       {filteredTeams.length === 0 && (
-                        <div className="w-full text-center py-20 text-base-content/50 text-xl font-bold bg-base-100/50 rounded-2xl backdrop-blur-sm">No teams or players match your search.</div>
+                        <div className="text-center text-base-content/40 col-span-full w-full py-20 text-xl font-medium">
+                          No teams match your search
+                        </div>
                       )}
-                    </div>
-                  </TransformComponent>
-                </>
-              )}
-            </TransformWrapper>
+                </div>
+             </div>
           </DragDropContext>
         )}
       </div>
