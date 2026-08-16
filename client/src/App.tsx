@@ -315,7 +315,12 @@ function StudentFlow() {
             <div className="divider"></div>
 
             <div className="form-control w-full">
-              <label className="label"><span className="label-text font-bold text-primary">INSA Student Code</span></label>
+              <label className="label pb-0">
+                <span className="label-text font-bold text-primary">INSA Student Code</span>
+              </label>
+              <label className="label pt-0 mb-1">
+                <span className="label-text-alt text-base-content/60">Note: If your ID has 3 or 4 digits, add zeros in front (e.g. 0123 or 0012)</span>
+              </label>
               <div className="flex items-center gap-2 w-full font-mono">
                 <span className="font-bold whitespace-nowrap bg-base-200 px-3 py-3 rounded-lg border border-base-300">CTC-</span>
                 <div className="flex gap-1 flex-1">
