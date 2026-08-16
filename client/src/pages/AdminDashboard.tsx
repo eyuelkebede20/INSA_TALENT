@@ -53,7 +53,6 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [settings, setSettings] = useState({ advanced: 1200, mid: 600, registrationOpen: true });
   const [loading, setLoading] = useState(true);
-  const [isDragging, setIsDragging] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [cronHealth, setCronHealth] = useState({ status: "Unknown", lastSync: null as string | null, message: "", invalidAccounts: [] as string[] });
   
@@ -357,11 +356,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           </div>
         ) : (
           <DragDropContext 
-            onDragStart={() => setIsDragging(true)}
-            onDragEnd={(result) => {
-              setIsDragging(false);
-              handleDragEnd(result);
-            }}
+            onDragEnd={handleDragEnd}
           >
              <AutoScroller filteredTeams={filteredTeams} />
              <div className="px-8 pb-12 w-max min-w-full">
