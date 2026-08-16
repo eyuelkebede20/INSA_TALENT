@@ -118,6 +118,13 @@ export async function runLichessSync() {
             await db.update(eventSettings).set({ lastSyncAt: syncTime }).where(eq(eventSettings.id, existingSettings[0].id));
         }
 
+        // Wipe the frontend public cache so leaderboard updates immediately
+        try {
+            const { setCachedData } = require('./public');
+            setCachedData("leaderboard_teams_rating", null);
+            setCachedData("leaderboard_students_rating", null);
+        } catch(e) {}
+
         lastCronHealth.lastSync = syncTime.toISOString();
         lastCronHealth.status = "Success";
         lastCronHealth.message = "Sync complete";
