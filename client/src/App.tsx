@@ -67,7 +67,7 @@ function StudentFlow() {
   const [chesscom, setChesscom] = useState("");
   const [manualRating, setManualRating] = useState("");
   const [groupNumber, setGroupNumber] = useState("");
-  const [insaDigits, setInsaDigits] = useState(["", "", "", ""]);
+  const [insaDigits, setInsaDigits] = useState(["", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [profile, setProfile] = useState<any>(null);
@@ -92,7 +92,7 @@ function StudentFlow() {
     newDigits[index] = value.slice(-1);
     setInsaDigits(newDigits);
     
-    if (value && index < 3) {
+    if (value && index < 4) {
       document.getElementById(`digit-${index + 1}`)?.focus();
     }
   };
@@ -147,9 +147,9 @@ function StudentFlow() {
       toast.error("Please select a group number.");
       return;
     }
-    const insaStr = insaDigits.join("");
-    if (insaStr.length !== 4) {
-      toast.error("Please enter all 4 digits of your INSA code.");
+    const insaStr = insaDigits.filter(d => d !== "").join("");
+    if (insaStr.length < 4) {
+      toast.error("Please enter at least 4 digits of your INSA code.");
       return;
     }
     setLoading(true);
@@ -167,7 +167,7 @@ function StudentFlow() {
           lichess_username: lichess || undefined, 
           chesscom_username: chesscom || undefined,
           manual_rating: manualRating ? parseInt(manualRating) : undefined,
-          insa_code: `CTC-${insaStr}-26`,
+          insa_code: `CTC-${insaStr.trim()}-26`,
           group_number: parseInt(groupNumber)
         })
       });
