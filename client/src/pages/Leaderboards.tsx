@@ -18,8 +18,8 @@ export default function Leaderboards() {
   
   useEffect(() => {
     Promise.all([
-      fetchApi('/leaderboard/students').then(setStudents),
-      fetchApi('/leaderboard/teams/rating').then(setTeams)
+      fetchApi('/leaderboard/students').then(data => setStudents(data.map((s: any, i: number) => ({ ...s, globalRank: i })))),
+      fetchApi('/leaderboard/teams/rating').then(data => setTeams(data.map((t: any, i: number) => ({ ...t, globalRank: i }))))
     ]).finally(() => setLoading(false));
   }, []);
 
@@ -122,7 +122,7 @@ export default function Leaderboards() {
                 </thead>
                 <tbody>
                   {paginatedStudents.map((s: any, i) => {
-                    const actualRank = (studentPage - 1) * ITEMS_PER_PAGE + i;
+                    const actualRank = s.globalRank !== undefined ? s.globalRank : ((studentPage - 1) * ITEMS_PER_PAGE + i);
                     return (
                       <tr key={i} className="hover">
                         <td className="font-bold text-lg">
@@ -209,7 +209,7 @@ export default function Leaderboards() {
                 </thead>
                 <tbody>
                   {paginatedTeams.map((t: any, i) => {
-                    const actualRank = (teamPage - 1) * ITEMS_PER_PAGE + i;
+                    const actualRank = t.globalRank !== undefined ? t.globalRank : ((teamPage - 1) * ITEMS_PER_PAGE + i);
                     return (
                       <tr key={i} className="hover">
                         <td className="font-bold text-lg">
