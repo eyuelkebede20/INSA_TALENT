@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { fetchApi, API_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DndContext, PointerSensor, useSensor, useSensors, DragOverlay, closestCenter } from '@dnd-kit/core';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import { DroppableTeam } from '../components/DroppableTeam';
 
 const AutoScroller = ({ filteredTeams }: { filteredTeams: any[] }) => {
   useEffect(() => {
@@ -15,39 +17,6 @@ const AutoScroller = ({ filteredTeams }: { filteredTeams: any[] }) => {
   return null;
 };
 
-const DraggablePlayer = ({ m, index, handleDelete }: any) => {
-  return (
-    <Draggable draggableId={m.id} index={index}>
-      {(provided, snapshot) => {
-        let style: any = { ...provided.draggableProps.style };
-        
-        return (
-          <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            className={`p-3 rounded-xl border flex justify-between items-center gap-2 transition-all ${snapshot.isDragging ? 'bg-primary/20 border-primary shadow-2xl z-50 rotate-2 scale-105' : 'bg-base-200 border-base-300 hover:border-primary/40'}`}
-            style={style}
-          >
-            <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 rounded-full shadow-sm ${m.tier === 'ADVANCED' ? 'bg-secondary' : m.tier === 'MID' ? 'bg-accent' : 'bg-primary'}`}></div>
-              <div>
-                <p className="font-bold text-sm truncate max-w-[140px]">{m.name}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="font-bold text-primary">{m.rating}</span>
-              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(m.id); }} className="btn btn-xs btn-square btn-ghost text-error hover:bg-error/20" title="Delete Player">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-              </button>
-            </div>
-          </div>
-        );
-      }}
-    </Draggable>
-  );
-};
-
 export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [teams, setTeams] = useState<any[]>([]);
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
@@ -55,6 +24,20 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [cronHealth, setCronHealth] = useState({ status: "Unknown", lastSync: null as string | null, message: "", invalidAccounts: [] as string[] });
+  
+  // Dnd-kit state
+  const [activePlayer, setActivePlayer] = useState<any>(null);
+
+  // Zoom state
+  const [isPanning, setIsPanning] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
+  );
   
   // Panel toggles
   const [controlsOpen, setControlsOpen] = useState(true);
@@ -71,28 +54,43 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     ]).then(() => setLoading(false));
   }, []);
 
-  const handleDragEnd = async (result: any) => {
-    const { source, destination, draggableId } = result;
+  const handleDragStart = (event: any) => {
+    setIsPanning(false);
+    const { active } = event;
+    setActivePlayer(active.data.current?.player);
+  };
 
-    if (!destination) return;
-    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+  const handleDragEnd = async (event: any) => {
+    const { active, over } = event;
+    setActivePlayer(null);
 
-    const sourceTeamId = parseInt(source.droppableId.split('-')[1]);
-    const targetTeamId = parseInt(destination.droppableId.split('-')[1]);
-    const playerId = draggableId;
+    if (!over) return;
+    
+    // Find source team and target team
+    let sourceTeamId = -1;
+    for (const t of teams) {
+      if (t.members?.some((m: any) => m && m.id === active.id)) {
+        sourceTeamId = t.id;
+        break;
+      }
+    }
+    
+    const targetTeamId = over.id;
+    if (sourceTeamId === -1 || sourceTeamId === targetTeamId) return;
+
+    const playerId = active.id;
 
     // Optimistic Update
     const newTeams = JSON.parse(JSON.stringify(teams));
     const sourceTeam = newTeams.find((t: any) => t.id === sourceTeamId);
     const targetTeam = newTeams.find((t: any) => t.id === targetTeamId);
     
-    // Fallback member filtering just in case there are nulls
     sourceTeam.members = sourceTeam.members?.filter((m: any) => m) || [];
     targetTeam.members = targetTeam.members?.filter((m: any) => m) || [];
 
     const memberIndex = sourceTeam.members.findIndex((m: any) => m.id === playerId);
     const [movedMember] = sourceTeam.members.splice(memberIndex, 1);
-    targetTeam.members.splice(destination.index, 0, movedMember);
+    targetTeam.members.push(movedMember); // Just push to the end, it auto-sorts on re-render/fetch
     setTeams(newTeams);
 
     try {
@@ -349,65 +347,76 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         </div>
       </div>
 
-      <div className="absolute inset-0 w-full h-full pt-20 pb-10 overflow-auto">
+      <div className="absolute inset-0 w-full h-full pt-20 pb-10 overflow-hidden bg-base-300 pattern-grid-lg text-base-content/10">
         {loading ? (
           <div className="w-full h-full flex justify-center items-center">
             <span className="loading loading-dots loading-lg text-primary"></span>
           </div>
         ) : (
-          <DragDropContext 
+          <DndContext 
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
              <AutoScroller filteredTeams={filteredTeams} />
-             <div className="px-8 pb-12 w-max min-w-full">
-                <div className="flex gap-6 items-start">
-                      {filteredTeams.map((t: any) => {
-                        const validMembers = (t.members?.filter((m: any) => m) || []).sort((a: any, b: any) => {
-                          const tierWeight: any = { ADVANCED: 3, MID: 2, BEGINNER: 1 };
-                          if (tierWeight[a.tier] !== tierWeight[b.tier]) {
-                            return tierWeight[b.tier] - tierWeight[a.tier];
-                          }
-                          return b.rating - a.rating;
-                        });
+             
+             <TransformWrapper
+               initialScale={1}
+               minScale={0.1}
+               maxScale={2}
+               centerOnInit={false}
+               panning={{ disabled: !!activePlayer, velocityDisabled: true }}
+               wheel={{ step: 0.1 }}
+               onPanningStart={() => setIsPanning(true)}
+               onPanningStop={() => setIsPanning(false)}
+             >
+               <TransformComponent wrapperStyle={{ width: '100%', height: '100%' }}>
+                 <div className={`p-20 w-[5000px] h-[5000px] flex flex-wrap content-start gap-10 ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}>
+                        {filteredTeams.map((t: any) => {
+                          const validMembers = (t.members?.filter((m: any) => m) || []).sort((a: any, b: any) => {
+                            const tierWeight: any = { ADVANCED: 3, MID: 2, BEGINNER: 1 };
+                            if (tierWeight[a.tier] !== tierWeight[b.tier]) {
+                              return tierWeight[b.tier] - tierWeight[a.tier];
+                            }
+                            return b.rating - a.rating;
+                          });
 
-                        return (
-                          <div id={`team-card-${t.id}`} key={t.id} className="card bg-base-100 shadow-2xl border-t-8 border-t-primary w-[350px] shrink-0 self-start h-[500px] flex flex-col hover:shadow-[0_0_20px_rgba(var(--primary),0.2)] transition-shadow cursor-auto">
-                            <div className="p-5 border-b border-base-200 flex justify-between items-center bg-base-100 shrink-0">
-                              <h3 className="font-bold text-xl">Team {t.team_number}</h3>
-                              <span className="badge badge-primary badge-outline font-bold">{validMembers.length} / 11</span>
-                            </div>
-                            
-                            <Droppable droppableId={`team-${t.id}`}>
-                              {(provided, snapshot) => (
-                                <div 
-                                  {...provided.droppableProps}
-                                  ref={provided.innerRef}
-                                  className={`p-4 flex-1 overflow-y-auto space-y-3 transition-colors ${snapshot.isDraggingOver ? 'bg-primary/5' : 'bg-base-100'}`}
-                                >
-                                  {validMembers.map((m: any, index: number) => (
-                                    <DraggablePlayer key={m.id} m={m} index={index} handleDelete={handleDelete} />
-                                  ))}
-                                  {provided.placeholder}
-                                  {validMembers.length === 0 && !snapshot.isDraggingOver && (
-                                    <div className="text-center p-8 border-2 border-dashed border-base-300 rounded-xl text-base-content/40 text-sm font-medium mt-4">
-                                      Drag players here
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </Droppable>
+                          return (
+                            <DroppableTeam 
+                              key={t.id} 
+                              t={t} 
+                              validMembers={validMembers} 
+                              handleDelete={handleDelete} 
+                            />
+                          );
+                        })}
+                        
+                        {filteredTeams.length === 0 && (
+                          <div className="text-center text-base-content/40 w-full py-20 text-xl font-medium">
+                            No teams match your search
                           </div>
-                        );
-                      })}
-                      
-                      {filteredTeams.length === 0 && (
-                        <div className="text-center text-base-content/40 col-span-full w-full py-20 text-xl font-medium">
-                          No teams match your search
-                        </div>
-                      )}
-                </div>
-             </div>
-          </DragDropContext>
+                        )}
+                 </div>
+               </TransformComponent>
+             </TransformWrapper>
+             
+             <DragOverlay modifiers={[]}>
+               {activePlayer ? (
+                 <div className="p-3 rounded-xl border flex justify-between items-center gap-2 bg-primary/20 border-primary shadow-2xl z-50 rotate-2 scale-105 w-[316px]">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full shadow-sm ${activePlayer.tier === 'ADVANCED' ? 'bg-secondary' : activePlayer.tier === 'MID' ? 'bg-accent' : 'bg-primary'}`}></div>
+                      <div>
+                        <p className="font-bold text-sm truncate max-w-[140px]">{activePlayer.name}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="font-bold text-primary">{activePlayer.rating}</span>
+                    </div>
+                 </div>
+               ) : null}
+             </DragOverlay>
+          </DndContext>
         )}
       </div>
     </div>
