@@ -15,6 +15,9 @@ export default function Leaderboards() {
   const [teamPage, setTeamPage] = useState(1);
   const [isExporting, setIsExporting] = useState(false);
   const ITEMS_PER_PAGE = isExporting ? 10000 : 10;
+
+  // Selected Team for Contribution Modal
+  const [selectedTeam, setSelectedTeam] = useState<any>(null);
   
   useEffect(() => {
     Promise.all([
@@ -211,7 +214,7 @@ export default function Leaderboards() {
                   {paginatedTeams.map((t: any, i) => {
                     const actualRank = t.globalRank !== undefined ? t.globalRank : ((teamPage - 1) * ITEMS_PER_PAGE + i);
                     return (
-                      <tr key={i} className="hover">
+                      <tr key={i} className="hover cursor-pointer" onClick={() => setSelectedTeam(t)}>
                         <td className="font-bold text-lg">
                           {actualRank === 0 ? '👑' : `#${actualRank + 1}`}
                         </td>
@@ -243,6 +246,63 @@ export default function Leaderboards() {
           </div>
         )}
       </div>
+
+      {/* Team Contribution Modal */}
+      {selectedTeam && (
+        <div className="modal modal-open z-[100]">
+          <div className="modal-box max-w-4xl">
+            <h3 className="font-bold text-3xl mb-6">Team {selectedTeam.team_number} <span className="text-primary opacity-80">Contributions</span></h3>
+            
+            <div className="overflow-x-auto">
+              <table className="table w-full">
+                <thead>
+                  <tr className="border-b-2 border-base-300">
+                    <th className="text-sm uppercase opacity-70">Player</th>
+                    <th className="text-sm uppercase opacity-70">Tier</th>
+                    <th className="text-right text-sm uppercase opacity-70">Wins</th>
+                    <th className="text-right text-sm uppercase opacity-70">Draws</th>
+                    <th className="text-right text-sm uppercase opacity-70">Losses</th>
+                    <th className="text-right text-sm uppercase text-primary">Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...(selectedTeam.members || [])].sort((a: any, b: any) => b.points - a.points).map((m: any, idx: number) => (
+                    <tr key={idx} className="hover">
+                      <td className="font-bold text-base">
+                        {m.name}
+                        {m.lichess_username && <span className="text-base-content/50 text-xs ml-2 font-normal">({m.lichess_username})</span>}
+                      </td>
+                      <td>
+                         <div className={`badge badge-sm font-semibold p-2 ${m.tier === 'ADVANCED' ? 'badge-secondary' : m.tier === 'MID' ? 'badge-accent' : 'badge-primary'}`}>
+                           {m.tier}
+                         </div>
+                      </td>
+                      <td className="text-right font-bold text-success text-lg">{m.wins}</td>
+                      <td className="text-right font-bold text-warning text-lg">{m.draws}</td>
+                      <td className="text-right font-bold text-error text-lg">{m.losses}</td>
+                      <td className="text-right font-bold text-primary text-xl">{m.points}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                   <tr className="border-t-4 border-base-300">
+                     <th colSpan={2} className="text-right text-xl uppercase py-4">Total Team Points:</th>
+                     <th className="text-right text-success text-xl py-4">{selectedTeam.total_wins}</th>
+                     <th className="text-right text-warning text-xl py-4">{selectedTeam.total_draws}</th>
+                     <th className="text-right text-error text-xl py-4">{selectedTeam.total_losses}</th>
+                     <th className="text-right text-primary text-2xl py-4 font-black">{selectedTeam.total_rating}</th>
+                   </tr>
+                </tfoot>
+              </table>
+            </div>
+            
+            <div className="modal-action">
+              <button className="btn btn-outline" onClick={() => setSelectedTeam(null)}>Close</button>
+            </div>
+          </div>
+          <div className="modal-backdrop bg-base-300/80 backdrop-blur-sm" onClick={() => setSelectedTeam(null)}></div>
+        </div>
+      )}
     </div>
   );
 }

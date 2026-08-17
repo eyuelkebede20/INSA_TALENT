@@ -73,13 +73,29 @@ publicRouter.get("/leaderboard/teams/rating", async (req, res) => {
         const teams = await db.execute(sql`
             SELECT 
                 t.team_number, 
-                COALESCE(SUM(ds.wins), 0) as total_wins,
-                COALESCE(SUM(ds.losses), 0) as total_losses,
-                COALESCE(SUM(ds.draws), 0) as total_draws,
-                (COALESCE(SUM(ds.wins), 0) * 3) + COALESCE(SUM(ds.draws), 0) as total_rating
+                COALESCE(SUM(p_stats.wins), 0) as total_wins,
+                COALESCE(SUM(p_stats.losses), 0) as total_losses,
+                COALESCE(SUM(p_stats.draws), 0) as total_draws,
+                (COALESCE(SUM(p_stats.wins), 0) * 3) + COALESCE(SUM(p_stats.draws), 0) as total_rating,
+                json_agg(
+                    json_build_object(
+                        'id', p.id,
+                        'name', p.real_name,
+                        'lichess_username', p.lichess_username,
+                        'tier', p.tier,
+                        'wins', COALESCE(p_stats.wins, 0),
+                        'losses', COALESCE(p_stats.losses, 0),
+                        'draws', COALESCE(p_stats.draws, 0),
+                        'points', (COALESCE(p_stats.wins, 0) * 3) + COALESCE(p_stats.draws, 0)
+                    )
+                ) as members
             FROM teams t
             JOIN players p ON p.team_id = t.id
-            LEFT JOIN player_daily_stats ds ON ds.player_id = p.id
+            LEFT JOIN (
+                SELECT player_id, SUM(wins) as wins, SUM(losses) as losses, SUM(draws) as draws
+                FROM player_daily_stats
+                GROUP BY player_id
+            ) p_stats ON p_stats.player_id = p.id
             GROUP BY t.team_number
             ORDER BY total_rating DESC, total_wins DESC
         `);
