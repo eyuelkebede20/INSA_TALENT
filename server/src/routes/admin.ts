@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "../db";
 import { players, teams, eventSettings } from "../db/schema";
 import { sql, eq } from "drizzle-orm";
-import { deletePlayer } from "../services/admin";
+import { deletePlayer, updateTeamLocks } from "../services/admin";
 import { assignPlayerToTeam } from "../services/eos";
 import jwt from "jsonwebtoken";
 
@@ -95,6 +95,7 @@ adminRouter.post("/reassign", async (req, res) => {
     try {
         const { player_id, target_team_id } = req.body;
         await db.update(players).set({ teamId: target_team_id }).where(eq(players.id, player_id));
+        await updateTeamLocks();
         res.json({ success: true });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
@@ -159,6 +160,7 @@ adminRouter.post("/regroup", async (req, res) => {
             for (const player of allPlayers) {
                 await assignPlayerToTeam(player.id, player.tier, tx);
             }
+            await updateTeamLocks(tx);
         });
         res.json({ success: true });
     } catch (error: any) {
