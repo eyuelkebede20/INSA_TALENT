@@ -96,6 +96,8 @@ adminRouter.post("/reassign", async (req, res) => {
         const { player_id, target_team_id } = req.body;
         await db.update(players).set({ teamId: target_team_id }).where(eq(players.id, player_id));
         await updateTeamLocks();
+        const { cleanupEmptyTeams } = require('../services/admin');
+        await cleanupEmptyTeams();
         res.json({ success: true });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
@@ -161,6 +163,8 @@ adminRouter.post("/regroup", async (req, res) => {
                 await assignPlayerToTeam(player.id, player.tier, tx);
             }
             await updateTeamLocks(tx);
+            const { cleanupEmptyTeams } = require('../services/admin');
+            await cleanupEmptyTeams(tx);
         });
         res.json({ success: true });
     } catch (error: any) {
