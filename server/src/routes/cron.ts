@@ -12,6 +12,23 @@ export let lastCronHealth = {
     invalidAccounts: [] as string[]
 };
 
+const fetchWithRetry = async (url: string, retries = 3, delayMs = 1000) => {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const res = await fetch(url);
+            if (res.status === 429 && i < retries - 1) {
+                await new Promise(r => setTimeout(r, 2000));
+                continue;
+            }
+            return res;
+        } catch (err: any) {
+            if (i === retries - 1) throw err;
+            await new Promise(r => setTimeout(r, delayMs));
+        }
+    }
+    throw new Error(`Fetch failed after ${retries} retries`);
+};
+
 export async function runLichessSync() {
     try {
         const allPlayers = await db.select().from(players);
@@ -35,7 +52,7 @@ export async function runLichessSync() {
                 const cleanChesscomUser = player.chesscomUsername?.replace(/^@+/, '').trim();
 
                 if (cleanLichessUser) {
-                    const response = await fetch(`https://lichess.org/api/user/${cleanLichessUser}`);
+                    const response = await fetchWithRetry(`https://lichess.org/api/user/${cleanLichessUser}`);
                     if (response.ok) {
                         const data = await response.json();
                         const perfs = data.perfs || {};
@@ -73,7 +90,7 @@ export async function runLichessSync() {
                 }
 
                 if (cleanChesscomUser) {
-                    const response = await fetch(`https://api.chess.com/pub/player/${cleanChesscomUser}/stats`);
+                    const response = await fetchWithRetry(`https://api.chess.com/pub/player/${cleanChesscomUser}/stats`);
                     if (response.ok) {
                         const data = await response.json();
                         const getChesscomGames = (perf: any) => (perf?.record?.win || 0) + (perf?.record?.loss || 0) + (perf?.record?.draw || 0);
