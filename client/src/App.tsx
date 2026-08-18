@@ -77,6 +77,9 @@ function StudentFlow() {
   const [editingLichess, setEditingLichess] = useState(false);
   const [newLichess, setNewLichess] = useState("");
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [updateNameLoading, setUpdateNameLoading] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -203,6 +206,25 @@ function StudentFlow() {
     }
   };
 
+  const handleUpdateName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName) return;
+    setUpdateNameLoading(true);
+    try {
+        await fetchApi("/students/update-name", {
+            method: "POST",
+            body: JSON.stringify({ real_name: newName })
+        });
+        toast.success("Name updated successfully!");
+        setProfile({...profile, real_name: newName});
+        setEditingName(false);
+    } catch (err: any) {
+        toast.error(err.message || "Failed to update name");
+    } finally {
+        setUpdateNameLoading(false);
+    }
+  };
+
   const handleFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!feedback.trim()) return;
@@ -231,6 +253,21 @@ function StudentFlow() {
             <p className="text-base-content/70 mb-4">You are officially in the system!</p>
             
             <div className="bg-base-200 p-4 rounded-xl border border-base-300 space-y-2 mb-6">
+              <div className="flex flex-col gap-2 border-b border-base-300 pb-2 mb-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold opacity-60">Full Name</span>
+                  <span className="font-bold">{profile.real_name}</span>
+                </div>
+                {!editingName ? (
+                    <button onClick={() => { setEditingName(true); setNewName(profile.real_name || ""); }} className="btn btn-xs btn-outline w-full">Edit Full Name</button>
+                ) : (
+                    <form onSubmit={handleUpdateName} className="flex gap-2 w-full mt-1">
+                        <input type="text" value={newName} onChange={e => setNewName(e.target.value)} className="input input-bordered input-sm flex-1" placeholder="New Full Name" />
+                        <button type="submit" className="btn btn-sm btn-primary" disabled={updateNameLoading}>Save</button>
+                        <button type="button" onClick={() => setEditingName(false)} className="btn btn-sm">Cancel</button>
+                    </form>
+                )}
+              </div>
               <div className="flex flex-col gap-2 border-b border-base-300 pb-2 mb-2">
                 <div className="flex justify-between items-center">
                   <span className="font-bold opacity-60">Lichess Account</span>

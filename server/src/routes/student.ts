@@ -230,3 +230,31 @@ studentRouter.post("/update-lichess", async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+studentRouter.post("/update-name", async (req, res) => {
+    try {
+        const authSession = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
+        if (!authSession?.user) return res.status(401).json({ error: "Unauthorized" });
+
+        const newName = typeof req.body.real_name === 'string' 
+            ? req.body.real_name.replace(/[<>'"]/g, '').trim() 
+            : null;
+            
+        if (!newName || newName.length < 2) return res.status(400).json({ error: "Invalid name" });
+
+        const playerRes = await db.select().from(players).where(eq(players.googleId, authSession.user.id));
+        if (playerRes.length === 0) return res.status(404).json({ error: "Profile not found" });
+
+        await db.update(players).set({ realName: newName }).where(eq(players.id, playerRes[0].id));
+        
+        try {
+            const { setCachedData } = require('./public');
+            setCachedData("leaderboard_students_rating", null);
+            setCachedData("leaderboard_teams_rating", null);
+        } catch(e) {}
+        
+        res.json({ success: true, newName });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
+});
