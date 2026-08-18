@@ -4,8 +4,8 @@ import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
 
 export default function Leaderboards() {
-  const [studentsData, setStudentsData] = useState<any>({ platinum: [], gold: [], silver: [] });
-  const [activeTab, setActiveTab] = useState<'platinum' | 'gold' | 'silver'>('platinum');
+  const [studentsData, setStudentsData] = useState<any>({ platinum: [], gold: [], silver: [], overall: [] });
+  const [activeTab, setActiveTab] = useState<'platinum' | 'gold' | 'silver' | 'overall'>('platinum');
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -26,7 +26,8 @@ export default function Leaderboards() {
         setStudentsData({
           platinum: (data.platinum || []).map((s: any, i: number) => ({ ...s, globalRank: i })),
           gold: (data.gold || []).map((s: any, i: number) => ({ ...s, globalRank: i })),
-          silver: (data.silver || []).map((s: any, i: number) => ({ ...s, globalRank: i }))
+          silver: (data.silver || []).map((s: any, i: number) => ({ ...s, globalRank: i })),
+          overall: (data.overall || []).map((s: any, i: number) => ({ ...s, globalRank: i }))
         });
       }),
       fetchApi('/leaderboard/teams/rating').then(data => setTeams(data.map((t: any, i: number) => ({ ...t, globalRank: i }))))
@@ -130,6 +131,9 @@ export default function Leaderboards() {
               </a>
               <a className={`tab tab-lg flex-1 ${activeTab === 'silver' ? 'tab-active bg-secondary text-secondary-content' : ''}`} onClick={() => { setActiveTab('silver'); setStudentPage(1); }}>
                 Silver League
+              </a>
+              <a className={`tab tab-lg flex-1 ${activeTab === 'overall' ? 'tab-active bg-neutral text-neutral-content' : ''}`} onClick={() => { setActiveTab('overall'); setStudentPage(1); }}>
+                All Time Rank
               </a>
             </div>
 
