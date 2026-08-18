@@ -4,7 +4,8 @@ import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
 
 export default function Leaderboards() {
-  const [students, setStudents] = useState<any[]>([]);
+  const [studentsData, setStudentsData] = useState<any>({ platinum: [], gold: [], silver: [] });
+  const [activeTab, setActiveTab] = useState<'platinum' | 'gold' | 'silver'>('platinum');
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -21,7 +22,13 @@ export default function Leaderboards() {
   
   useEffect(() => {
     Promise.all([
-      fetchApi('/leaderboard/students').then(data => setStudents(data.map((s: any, i: number) => ({ ...s, globalRank: i })))),
+      fetchApi('/leaderboard/students').then(data => {
+        setStudentsData({
+          platinum: (data.platinum || []).map((s: any, i: number) => ({ ...s, globalRank: i })),
+          gold: (data.gold || []).map((s: any, i: number) => ({ ...s, globalRank: i })),
+          silver: (data.silver || []).map((s: any, i: number) => ({ ...s, globalRank: i }))
+        });
+      }),
       fetchApi('/leaderboard/teams/rating').then(data => setTeams(data.map((t: any, i: number) => ({ ...t, globalRank: i }))))
     ]).finally(() => setLoading(false));
   }, []);
@@ -60,8 +67,9 @@ export default function Leaderboards() {
   // Filtered & Paginated Data
   const sSearch = studentSearch.toLowerCase().trim();
   const sSearchNoSpaces = sSearch.replace(/\s+/g, '');
+  const currentStudents = studentsData[activeTab] || [];
 
-  const filteredStudents = students.filter(s => 
+  const filteredStudents = currentStudents.filter((s: any) => 
     s.real_name.toLowerCase().includes(sSearch) || 
     s.lichess_username?.toLowerCase().includes(sSearch) ||
     s.insa_code?.toLowerCase().includes(sSearch) ||
@@ -112,6 +120,19 @@ export default function Leaderboards() {
         ) : (
           <div id="student-board" className="card bg-base-100 shadow-xl border-t-4 border-t-primary p-8 rounded-2xl overflow-visible">
             <h3 className="text-2xl font-bold mb-6 tracking-tighter">INSA<span className="text-primary">TALENT</span> Leaderboard</h3>
+            
+            <div className="tabs tabs-boxed mb-6 bg-base-200/50 p-1 font-bold">
+              <a className={`tab tab-lg flex-1 ${activeTab === 'platinum' ? 'tab-active bg-primary text-primary-content' : ''}`} onClick={() => { setActiveTab('platinum'); setStudentPage(1); }}>
+                Platinum League (&gt;1200)
+              </a>
+              <a className={`tab tab-lg flex-1 ${activeTab === 'gold' ? 'tab-active bg-accent text-accent-content' : ''}`} onClick={() => { setActiveTab('gold'); setStudentPage(1); }}>
+                Golden League (&gt;600)
+              </a>
+              <a className={`tab tab-lg flex-1 ${activeTab === 'silver' ? 'tab-active bg-secondary text-secondary-content' : ''}`} onClick={() => { setActiveTab('silver'); setStudentPage(1); }}>
+                Silver League
+              </a>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="table w-full">
                 <thead>
@@ -124,7 +145,7 @@ export default function Leaderboards() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedStudents.map((s: any, i) => {
+                  {paginatedStudents.map((s: any, i: number) => {
                     const actualRank = s.globalRank !== undefined ? s.globalRank : ((studentPage - 1) * ITEMS_PER_PAGE + i);
                     return (
                       <tr key={i} className="hover">
