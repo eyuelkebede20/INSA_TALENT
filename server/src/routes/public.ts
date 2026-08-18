@@ -48,14 +48,23 @@ publicRouter.get("/leaderboard/students", async (req, res) => {
         const cached = getCachedData(cacheKey);
         if (cached) return res.json(cached);
 
-        const students = await db.execute(sql`
-            SELECT p.real_name, p.tier, p.current_rating, p.lichess_username, t.team_number, p.insa_code,
-                   COALESCE((SELECT SUM(wins + losses + draws) FROM player_daily_stats WHERE player_id = p.id), 0) as games_played_today
-            FROM players p
-            LEFT JOIN teams t ON p.team_id = t.id
-            ORDER BY p.current_rating DESC
-            LIMIT 100
-        `);
+        const getTierLeaderboard = async (minRating: number, maxRating: number) => {
+            return await db.execute(sql`
+                SELECT p.real_name, p.tier, p.current_rating, p.lichess_username, t.team_number, p.insa_code,
+                       COALESCE((SELECT SUM(wins + losses + draws) FROM player_daily_stats WHERE player_id = p.id), 0) as games_played_today
+                FROM players p
+                LEFT JOIN teams t ON p.team_id = t.id
+                WHERE p.current_rating >= ${minRating} AND p.current_rating < ${maxRating}
+                ORDER BY p.current_rating DESC
+                LIMIT 50
+            `);
+        };
+
+        const students = {
+            platinum: await getTierLeaderboard(1200, 999999),
+            gold: await getTierLeaderboard(600, 1200),
+            silver: await getTierLeaderboard(0, 600)
+        };
         
         setCachedData(cacheKey, students);
         res.json(students);
