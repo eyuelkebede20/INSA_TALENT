@@ -70,7 +70,7 @@ export default function Leaderboards() {
   const currentStudents = studentsData[activeTab] || [];
 
   const filteredStudents = currentStudents.filter((s: any) => 
-    s.real_name.toLowerCase().includes(sSearch) || 
+    s.real_name?.toLowerCase().includes(sSearch) || 
     s.lichess_username?.toLowerCase().includes(sSearch) ||
     s.insa_code?.toLowerCase().includes(sSearch) ||
     s.insa_code?.toLowerCase().replace(/-/g, '').includes(sSearchNoSpaces) ||
@@ -174,7 +174,9 @@ export default function Leaderboards() {
                   })}
                   {filteredStudents.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="py-10 text-center text-base-content/50">No students match your search.</td>
+                      <td colSpan={5} className="py-10 text-center text-base-content/50">
+                        {sSearch ? "No students match your search." : "No students in this league yet."}
+                      </td>
                     </tr>
                   )}
                 </tbody>
@@ -249,7 +251,9 @@ export default function Leaderboards() {
                   })}
                   {filteredTeams.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-10 text-center text-base-content/50">No teams match your search.</td>
+                      <td colSpan={6} className="py-10 text-center text-base-content/50">
+                        {tSearch ? "No teams match your search." : "No teams have been formed yet."}
+                      </td>
                     </tr>
                   )}
                 </tbody>
