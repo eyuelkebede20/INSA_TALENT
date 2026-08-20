@@ -30,6 +30,8 @@ const fetchWithRetry = async (url: string, retries = 3, delayMs = 1000) => {
 };
 
 export async function runLichessSync() {
+    lastCronHealth.status = "Running...";
+    lastCronHealth.message = "Sync in progress";
     try {
         const allPlayers = await db.select().from(players);
         lastCronHealth.invalidAccounts = []; // reset for this run
@@ -173,8 +175,9 @@ cronRouter.post("/sync-lichess", async (req, res) => {
     }
 
     try {
-        const result = await runLichessSync();
-        res.json(result);
+        // Run in the background so the request doesn't hang
+        runLichessSync().catch(err => console.error("Background sync failed:", err));
+        res.json({ success: true, message: "Sync started in background" });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }

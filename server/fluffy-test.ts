@@ -1,1 +1,0 @@
-import { db } from './src/db/index.ts'; import { players } from './src/db/schema.ts'; import { eq } from 'drizzle-orm'; async function run() { const p = await db.select().from(players).where(eq(players.lichessUsername, 'fluffyweird')); console.log(p); process.exit(0); } run();
