@@ -129,8 +129,8 @@ export async function runLichessSync() {
                 console.error(`Failed to fetch for ${player.lichessUsername}`, err);
                 continue; // Skip so we don't zero out data on network timeout
             }
-            // 200ms delay is the absolute minimum safe limit to respect Lichess's 5 req/sec limit
-            await new Promise(resolve => setTimeout(resolve, 200));
+            // 1000ms delay to safely respect Lichess's sustained rate limits for hundreds of users
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         const syncTime = new Date();
