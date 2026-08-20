@@ -139,6 +139,13 @@ export async function runLichessSync() {
             await db.update(eventSettings).set({ lastSyncAt: syncTime }).where(eq(eventSettings.id, existingSettings[0].id));
         }
 
+        // Update is_leader
+        await db.update(players).set({ isLeader: false });
+        const topPlayers = await db.select().from(players).orderBy(sql`${players.currentRating} DESC`).limit(1);
+        if (topPlayers.length > 0) {
+            await db.update(players).set({ isLeader: true }).where(eq(players.id, topPlayers[0].id));
+        }
+
         // Wipe the frontend public cache so leaderboard updates immediately
         try {
             const { setCachedData } = require('./public');
