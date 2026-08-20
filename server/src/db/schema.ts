@@ -80,6 +80,7 @@ export const players = pgTable('players', {
   lichessLosses: integer('lichess_losses').default(0).notNull(),
   lichessDraws: integer('lichess_draws').default(0).notNull(),
   tier: tierEnum('tier').notNull(),
+  isLeader: boolean('is_leader').default(false).notNull(),
   teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (t) => ({

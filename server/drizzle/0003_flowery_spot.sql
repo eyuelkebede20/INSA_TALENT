@@ -1,0 +1,1 @@
+ALTER TABLE "players" ADD COLUMN "is_leader" boolean DEFAULT false NOT NULL;
