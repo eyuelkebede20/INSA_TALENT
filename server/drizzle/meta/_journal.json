@@ -43,6 +43,13 @@
       "when": 1787632975199,
       "tag": "0005_whole_yellow_claw",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787634100102,
+      "tag": "0006_dry_white_tiger",
+      "breakpoints": true
     }
   ]
 }

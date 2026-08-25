@@ -1,0 +1,1 @@
+ALTER TABLE "webinar_registrations" ADD COLUMN "status" varchar(20) DEFAULT 'PENDING' NOT NULL;

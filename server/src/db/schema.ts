@@ -112,6 +112,7 @@ export const webinarRegistrations = pgTable('webinar_registrations', {
   email: varchar('email', { length: 255 }).notNull(),
   bankRefNumber: varchar('bank_ref_number', { length: 100 }).notNull(),
   screenshotData: text('screenshot_data').notNull(), // Base64 image
+  status: varchar('status', { length: 20 }).default('PENDING').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

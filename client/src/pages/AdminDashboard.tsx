@@ -44,8 +44,29 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [webinarsOpen, setWebinarsOpen] = useState(false);
   const [webinars, setWebinars] = useState<any[]>([]);
+  const [selectedWebinar, setSelectedWebinar] = useState<any>(null);
 
   const fetchTeams = () => fetchApi('/adminme/teams').then(setTeams);
+
+  const handleUpdateWebinarStatus = async (id: number, status: string) => {
+    try {
+      await fetchApi(`/adminme/webinar-registrations/${id}/status`, {
+        method: "POST",
+        body: JSON.stringify({ status })
+      });
+      setWebinars(prev => prev.map(w => w.id === id ? { ...w, status } : w));
+      if (selectedWebinar && selectedWebinar.id === id) {
+          if (status === 'REJECTED') {
+              setSelectedWebinar(null);
+          } else {
+              setSelectedWebinar({ ...selectedWebinar, status });
+          }
+      }
+      toast.success("Registration " + status);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to update status");
+    }
+  };
 
   useEffect(() => {
     Promise.all([
@@ -341,25 +362,37 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           {webinarsOpen ? (
             <div className="card bg-base-100/90 shadow-2xl border border-base-300 backdrop-blur-md w-80 h-96 max-w-full flex flex-col relative">
               <button onClick={() => setWebinarsOpen(false)} className="btn btn-xs btn-circle btn-ghost absolute top-3 right-3 z-10 text-base-content/50 hover:text-base-content">✕</button>
-              <div className="p-3 border-b border-base-200 bg-base-100/50 rounded-t-2xl shrink-0 flex items-center gap-3 pt-3 pl-4">
-                <h3 className="font-bold text-sm">Webinar Regs</h3>
-                <div className="badge badge-secondary badge-sm">{webinars.length}</div>
+              <div className="p-3 border-b border-base-200 bg-base-100/50 rounded-t-2xl shrink-0 flex items-center justify-between pt-3 pl-4 pr-10">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm">Webinars</h3>
+                  <div className="badge badge-secondary badge-sm">{webinars.filter(w => w.status !== 'REJECTED').length}</div>
+                </div>
+                <button onClick={() => window.open(`${API_BASE_URL}/adminme/export-webinar-csv`, '_blank')} className="btn btn-xs btn-outline btn-secondary">
+                  📥 CSV
+                </button>
               </div>
               <div className="p-4 overflow-y-auto space-y-4 flex-1 flex flex-col">
                 {loading ? (
                   <div className="flex justify-center items-center h-full"><span className="loading loading-spinner text-secondary"></span></div>
-                ) : webinars.length === 0 ? (
+                ) : webinars.filter(w => w.status !== 'REJECTED').length === 0 ? (
                   <div className="text-center text-xs opacity-50 my-auto">No registrations yet.</div>
                 ) : (
-                  webinars.map((w: any) => (
-                    <div key={w.id} className="card bg-base-200 border border-base-300 shadow-sm p-3 gap-2">
+                  webinars.filter(w => w.status !== 'REJECTED').map((w: any) => (
+                    <div 
+                      key={w.id} 
+                      onClick={() => setSelectedWebinar(w)}
+                      className={`card border cursor-pointer hover:bg-base-300 shadow-sm p-3 gap-2 transition-colors ${w.status === 'ACCEPTED' ? 'bg-success/10 border-success/30' : 'bg-base-200 border-base-300'}`}
+                    >
                       <div className="flex justify-between items-start">
                         <div className="font-bold text-sm truncate pr-2">{w.userName}</div>
                         <div className="text-[10px] opacity-60 whitespace-nowrap">{new Date(w.createdAt).toLocaleDateString()}</div>
                       </div>
                       <div className="text-xs opacity-80 break-all">{w.userEmail}</div>
-                      <div className="text-xs font-mono mt-1">Ref: <span className="font-bold text-primary">{w.bankRefNumber}</span></div>
-                      <a href={w.screenshotData} target="_blank" rel="noreferrer" className="btn btn-xs btn-secondary mt-2">View Screenshot</a>
+                      <div className="flex justify-between items-center mt-1">
+                        <div className="text-[10px] font-mono">Ref: <span className="font-bold">{w.bankRefNumber}</span></div>
+                        {w.status === 'ACCEPTED' && <div className="badge badge-success badge-xs">Accepted</div>}
+                        {w.status === 'PENDING' && <div className="badge badge-warning badge-xs">Pending</div>}
+                      </div>
                     </div>
                   ))
                 )}
@@ -367,7 +400,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             </div>
           ) : (
             <button onClick={() => setWebinarsOpen(true)} className="btn btn-secondary shadow-xl rounded-full px-6 flex items-center gap-2">
-              🎫 Webinars <span className="badge badge-sm badge-base-100 font-bold">{webinars.length}</span>
+              🎫 Webinars <span className="badge badge-sm badge-base-100 font-bold">{webinars.filter(w => w.status !== 'REJECTED').length}</span>
             </button>
           )}
         </div>
@@ -458,6 +491,60 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           </DndContext>
         )}
       </div>
+      </div>
+
+      {selectedWebinar && (
+        <div className="fixed inset-0 z-[100] flex justify-center items-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="card w-full max-w-2xl bg-base-100 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="p-4 border-b border-base-200 flex justify-between items-center bg-base-200">
+              <h2 className="text-lg font-bold">Webinar Registration Details</h2>
+              <button onClick={() => setSelectedWebinar(null)} className="btn btn-sm btn-circle btn-ghost">✕</button>
+            </div>
+            
+            <div className="p-4 overflow-y-auto flex-1 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold opacity-60">Full Name</label>
+                  <p className="font-bold">{selectedWebinar.userName}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-bold opacity-60">Email</label>
+                  <p className="font-mono text-sm">{selectedWebinar.userEmail}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-bold opacity-60">Bank Reference</label>
+                  <p className="font-mono font-bold text-primary">{selectedWebinar.bankRefNumber}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-bold opacity-60">Date Registered</label>
+                  <p className="text-sm">{new Date(selectedWebinar.createdAt).toLocaleString()}</p>
+                </div>
+              </div>
+              
+              <div className="divider my-1"></div>
+              
+              <div>
+                <label className="text-xs font-bold opacity-60 mb-2 block">Payment Screenshot</label>
+                <div className="bg-base-200 rounded-lg p-2 border border-base-300 flex justify-center">
+                  <img src={selectedWebinar.screenshotData} alt="Payment" className="max-h-[40vh] object-contain rounded shadow-sm" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-base-200 bg-base-200/50 flex justify-end gap-3 shrink-0">
+              {selectedWebinar.status === 'PENDING' && (
+                <>
+                  <button onClick={() => handleUpdateWebinarStatus(selectedWebinar.id, 'REJECTED')} className="btn btn-error btn-outline shadow-lg shadow-error/20">❌ Reject & Cancel</button>
+                  <button onClick={() => handleUpdateWebinarStatus(selectedWebinar.id, 'ACCEPTED')} className="btn btn-success shadow-lg shadow-success/20">✅ Accept Payment</button>
+                </>
+              )}
+              {selectedWebinar.status === 'ACCEPTED' && (
+                 <button onClick={() => handleUpdateWebinarStatus(selectedWebinar.id, 'REJECTED')} className="btn btn-error btn-outline btn-sm">Revoke Acceptance</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -234,6 +234,7 @@ adminRouter.get("/webinar-registrations", async (req, res) => {
             userEmail: webinarRegistrations.email,
             bankRefNumber: webinarRegistrations.bankRefNumber,
             screenshotData: webinarRegistrations.screenshotData,
+            status: webinarRegistrations.status,
             createdAt: webinarRegistrations.createdAt
         }).from(webinarRegistrations)
         .orderBy(sql`${webinarRegistrations.createdAt} DESC`);
@@ -241,5 +242,43 @@ adminRouter.get("/webinar-registrations", async (req, res) => {
         res.json(registrations);
     } catch (err: any) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+adminRouter.post("/webinar-registrations/:id/status", async (req, res) => {
+    try {
+        const { status } = req.body;
+        if (!['PENDING', 'ACCEPTED', 'REJECTED'].includes(status)) {
+            return res.status(400).json({ error: "Invalid status" });
+        }
+        await db.update(webinarRegistrations)
+            .set({ status })
+            .where(eq(webinarRegistrations.id, parseInt(req.params.id)));
+        res.json({ success: true });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+adminRouter.get("/export-webinar-csv", async (req, res) => {
+    try {
+        const accepted = await db.select().from(webinarRegistrations).where(eq(webinarRegistrations.status, 'ACCEPTED'));
+        
+        let csv = "Name,Email,BankRef,RegisteredAt\n";
+        for (const reg of accepted) {
+            // Escape quotes and wrap in quotes for CSV safety
+            const name = `"${reg.name.replace(/"/g, '""')}"`;
+            const email = `"${reg.email.replace(/"/g, '""')}"`;
+            const bankRef = `"${reg.bankRefNumber.replace(/"/g, '""')}"`;
+            const date = `"${reg.createdAt.toISOString()}"`;
+            
+            csv += `${name},${email},${bankRef},${date}\n`;
+        }
+        
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader("Content-Disposition", 'attachment; filename="webinar_registrations.csv"');
+        res.send(csv);
+    } catch (err: any) {
+        res.status(500).send(err.message);
     }
 });
