@@ -128,15 +128,21 @@ publicRouter.post("/webinar-register", async (req, res) => {
         if (!name || !email || !bank_ref || !screenshot) {
             return res.status(400).json({ error: "Name, email, bank reference and screenshot are required" });
         }
+        
+        const sanitizeText = (str: any) => typeof str === 'string' ? str.replace(/[<>'"]/g, '').trim() : str;
+        
+        const safeName = sanitizeText(name);
+        const safeEmail = sanitizeText(email);
+        const safeBankRef = sanitizeText(bank_ref);
 
         if (screenshot.length > 1.5 * 1024 * 1024) {
             return res.status(400).json({ error: "Screenshot is too large. Max 1MB allowed." });
         }
 
         await db.insert(webinarRegistrations).values({
-            name,
-            email,
-            bankRefNumber: bank_ref,
+            name: safeName,
+            email: safeEmail,
+            bankRefNumber: safeBankRef,
             screenshotData: screenshot
         });
 

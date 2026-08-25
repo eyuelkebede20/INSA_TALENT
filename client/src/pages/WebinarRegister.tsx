@@ -97,17 +97,17 @@ export default function WebinarRegister() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="form-control w-full">
               <label className="label"><span className="label-text font-bold">Full Name</span></label>
-              <input type="text" required value={name} onChange={e => setName(e.target.value)} className="input input-bordered w-full" placeholder="Your Name" />
+              <input type="text" required value={name} onChange={e => setName(e.target.value.replace(/[<>]/g, ''))} className="input input-bordered w-full" placeholder="Your Name" />
             </div>
 
             <div className="form-control w-full">
               <label className="label"><span className="label-text font-bold">Email Address</span></label>
-              <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="input input-bordered w-full" placeholder="you@example.com" />
+              <input type="email" required value={email} onChange={e => setEmail(e.target.value.replace(/[<>\s]/g, ''))} className="input input-bordered w-full" placeholder="you@example.com" />
             </div>
 
             <div className="form-control w-full">
               <label className="label"><span className="label-text font-bold text-primary">Bank Reference Number</span></label>
-              <input type="text" required value={bankRef} onChange={e => setBankRef(e.target.value)} className="input input-bordered input-primary w-full" placeholder="e.g. FT123456789" />
+              <input type="text" required value={bankRef} onChange={e => setBankRef(e.target.value.replace(/[<>'"\s]/g, ''))} className="input input-bordered input-primary w-full" placeholder="e.g. FT123456789" />
             </div>
 
             <div className="form-control w-full">

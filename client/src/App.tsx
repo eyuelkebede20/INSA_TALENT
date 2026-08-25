@@ -263,7 +263,7 @@ function StudentFlow() {
                     <button onClick={() => { setEditingName(true); setNewName(profile.real_name || ""); }} className="btn btn-xs btn-outline w-full">Edit Full Name</button>
                 ) : (
                     <form onSubmit={handleUpdateName} className="flex gap-2 w-full mt-1">
-                        <input type="text" value={newName} onChange={e => setNewName(e.target.value)} className="input input-bordered input-sm flex-1" placeholder="New Full Name" />
+                        <input type="text" value={newName} onChange={e => setNewName(e.target.value.replace(/[<>]/g, ''))} className="input input-bordered input-sm flex-1" placeholder="New Full Name" />
                         <button type="submit" className="btn btn-sm btn-primary" disabled={updateNameLoading}>Save</button>
                         <button type="button" onClick={() => setEditingName(false)} className="btn btn-sm">Cancel</button>
                     </form>
@@ -278,7 +278,7 @@ function StudentFlow() {
                     <button onClick={() => { setEditingLichess(true); setNewLichess(profile.lichess_username || ""); }} className="btn btn-xs btn-outline w-full">Edit Lichess Username</button>
                 ) : (
                     <form onSubmit={handleUpdateLichess} className="flex gap-2 w-full mt-1">
-                        <input type="text" value={newLichess} onChange={e => setNewLichess(e.target.value)} className="input input-bordered input-sm flex-1" placeholder="New Lichess username" />
+                        <input type="text" value={newLichess} onChange={e => setNewLichess(e.target.value.replace(/[<>'"\s]/g, ''))} className="input input-bordered input-sm flex-1" placeholder="New Lichess username" />
                         <button type="submit" className="btn btn-sm btn-primary" disabled={updateLoading}>Save</button>
                         <button type="button" onClick={() => setEditingLichess(false)} className="btn btn-sm">Cancel</button>
                     </form>
@@ -337,12 +337,12 @@ function StudentFlow() {
             
             <div className="form-control w-full">
               <label className="label"><span className="label-text font-bold">Lichess Username</span></label>
-              <input type="text" value={lichess} onChange={e => setLichess(e.target.value)} className="input input-bordered w-full" placeholder="e.g. MagnusCarlsen" />
+              <input type="text" value={lichess} onChange={e => setLichess(e.target.value.replace(/[<>'"\s]/g, ''))} className="input input-bordered w-full" placeholder="e.g. MagnusCarlsen" />
             </div>
             
             <div className="form-control w-full">
               <label className="label"><span className="label-text font-bold">Chess.com Username</span></label>
-              <input type="text" value={chesscom} onChange={e => setChesscom(e.target.value)} className="input input-bordered w-full" placeholder="e.g. Hikaru" />
+              <input type="text" value={chesscom} onChange={e => setChesscom(e.target.value.replace(/[<>'"\s]/g, ''))} className="input input-bordered w-full" placeholder="e.g. Hikaru" />
             </div>
 
             <div className="form-control w-full">
