@@ -120,7 +120,7 @@ export default function Leaderboards() {
           </div>
         ) : (
           <div id="student-board" className="card bg-base-100 shadow-xl border-t-4 border-t-primary p-8 rounded-2xl overflow-visible">
-            <h3 className="text-2xl font-bold mb-6 tracking-tighter">INSA<span className="text-primary">TALENT</span> Leaderboard</h3>
+            <h3 className="text-2xl font-bold mb-6 tracking-tighter">ACA-<span className="text-primary">2026</span> Leaderboard</h3>
             
             <div className="tabs tabs-boxed mb-6 bg-base-200/50 p-1 font-bold">
               <a className={`tab tab-lg flex-1 ${activeTab === 'platinum' ? 'tab-active bg-primary text-primary-content' : ''}`} onClick={() => { setActiveTab('platinum'); setStudentPage(1); }}>
@@ -224,7 +224,7 @@ export default function Leaderboards() {
           </div>
         ) : (
           <div id="team-board" className="card bg-base-100 shadow-xl border-t-4 border-t-secondary p-8 rounded-2xl overflow-visible">
-            <h3 className="text-2xl font-bold mb-6 tracking-tighter">INSA<span className="text-secondary">TALENT</span> Team Rankings</h3>
+            <h3 className="text-2xl font-bold mb-6 tracking-tighter">ACA-<span className="text-secondary">2026</span> Team Rankings</h3>
             <div className="overflow-x-auto">
               <table className="table w-full">
                 <thead>
