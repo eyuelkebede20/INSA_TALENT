@@ -21,7 +21,18 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const fetchWithRetry = async (url: string, retries = 3, delayMs = 1000) => {
   for (let i = 0; i < retries; i++) {
     try {
-      const res = await fetch(url);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
+      const res = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "insa-talent-cron/1.0 (https://insa-aca.vercel.app)",
+          "Accept": "application/json"
+        }
+      });
+      clearTimeout(timeout);
+
       if (res.status === 429 && i < retries - 1) {
         await sleep(2000);
         continue;
@@ -192,7 +203,7 @@ export async function runLichessSync() {
     if (existingSettings.length === 0) {
       await db.insert(eventSettings).values({ lastSyncAt: syncTime });
     } else {
-      await db.update(eventSettings).set({ lastSyncAt: syncTime }).where(eq(eventSettings.id, existingSettings[0].id));
+      await db.update(eventSettings).set({ lastSyncAt: syncTime }).where(eq(eventSettings.id, existingSettings[0]!.id));
     }
 
     // Update is_leader atomically so there's never a moment with zero
@@ -205,7 +216,7 @@ export async function runLichessSync() {
         .orderBy(sql`${players.currentRating} DESC`)
         .limit(1);
       if (topPlayers.length > 0) {
-        await tx.update(players).set({ isLeader: true }).where(eq(players.id, topPlayers[0].id));
+        await tx.update(players).set({ isLeader: true }).where(eq(players.id, topPlayers[0]!.id));
       }
     });
 

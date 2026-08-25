@@ -6,6 +6,7 @@ import { Toaster, toast } from 'sonner';
 import Leaderboards from './pages/Leaderboards';
 import PublicCanvas from './pages/PublicCanvas';
 import AdminDashboardView from './pages/AdminDashboard';
+import WebinarRegister from './pages/WebinarRegister';
 
 function AdminDashboard() {
   const [password, setPassword] = useState("");
@@ -481,6 +482,7 @@ function App() {
           <Route path="/leaderboards" element={<div className="max-w-7xl mx-auto px-4 mt-8 h-full"><Leaderboards /></div>} />
           <Route path="/adminme" element={<div className="max-w-7xl mx-auto px-4 mt-8 h-full"><AdminDashboard /></div>} />
           <Route path="/student" element={<div className="max-w-7xl mx-auto px-4 mt-8 h-full"><StudentFlow /></div>} />
+          <Route path="/register" element={<div className="max-w-7xl mx-auto px-4 mt-8 h-full"><WebinarRegister /></div>} />
         </Routes>
       </main>
     </div>

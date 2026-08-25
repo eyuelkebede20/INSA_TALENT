@@ -29,6 +29,13 @@
       "when": 1787163612187,
       "tag": "0003_flowery_spot",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787601364238,
+      "tag": "0004_famous_kat_farrell",
+      "breakpoints": true
     }
   ]
 }

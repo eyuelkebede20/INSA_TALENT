@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { players, teams, eventSettings } from "../db/schema";
+import { players, teams, eventSettings, user, webinarRegistrations } from "../db/schema";
 import { sql, eq } from "drizzle-orm";
 import { deletePlayer, updateTeamLocks } from "../services/admin";
 import { assignPlayerToTeam } from "../services/eos";
@@ -191,7 +191,7 @@ import { lastCronHealth, runLichessSync } from "./cron";
 adminRouter.get("/cron-health", async (req, res) => {
     try {
         const settingsRes = await db.execute(sql`SELECT last_sync_at FROM event_settings LIMIT 1`);
-        let persistedLastSync = settingsRes[0]?.last_sync_at;
+        let persistedLastSync = settingsRes[0]?.last_sync_at as string | undefined;
         
         // If in-memory status says "never run" but we have a date in DB, we know it ran before restart
         let responseHealth = { ...lastCronHealth };
@@ -223,4 +223,24 @@ adminRouter.post("/force-sync", (req, res) => {
     // Fire and forget so we don't timeout on Vercel proxy
     runLichessSync().catch(console.error);
     res.json({ success: true, message: "Sync started in background" });
+});
+
+adminRouter.get("/webinar-registrations", async (req, res) => {
+    try {
+        const registrations = await db.select({
+            id: webinarRegistrations.id,
+            userId: webinarRegistrations.userId,
+            userName: user.name,
+            userEmail: user.email,
+            bankRefNumber: webinarRegistrations.bankRefNumber,
+            screenshotData: webinarRegistrations.screenshotData,
+            createdAt: webinarRegistrations.createdAt
+        }).from(webinarRegistrations)
+        .leftJoin(user, eq(webinarRegistrations.userId, user.id))
+        .orderBy(sql`${webinarRegistrations.createdAt} DESC`);
+        
+        res.json(registrations);
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
 });

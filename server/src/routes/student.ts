@@ -4,7 +4,7 @@ import { players, teams } from "../db/schema";
 import { sql, eq } from "drizzle-orm";
 import { auth } from "../auth";
 import { fromNodeHeaders } from "better-auth/node";
-import { studentFeedbacks } from "../db/schema";
+import { studentFeedbacks, webinarRegistrations } from "../db/schema";
 
 export const studentRouter = Router();
 
@@ -223,7 +223,7 @@ studentRouter.post("/update-lichess", async (req, res) => {
         const playerRes = await db.select().from(players).where(eq(players.googleId, authSession.user.id));
         if (playerRes.length === 0) return res.status(404).json({ error: "Profile not found" });
 
-        await db.update(players).set({ lichessUsername: newLichess }).where(eq(players.id, playerRes[0].id));
+        await db.update(players).set({ lichessUsername: newLichess }).where(eq(players.id, playerRes[0]!.id));
         
         res.json({ success: true, newUsername: newLichess });
     } catch (err: any) {
@@ -245,7 +245,7 @@ studentRouter.post("/update-name", async (req, res) => {
         const playerRes = await db.select().from(players).where(eq(players.googleId, authSession.user.id));
         if (playerRes.length === 0) return res.status(404).json({ error: "Profile not found" });
 
-        await db.update(players).set({ realName: newName }).where(eq(players.id, playerRes[0].id));
+        await db.update(players).set({ realName: newName }).where(eq(players.id, playerRes[0]!.id));
         
         try {
             const { setCachedData } = require('./public');
@@ -254,6 +254,32 @@ studentRouter.post("/update-name", async (req, res) => {
         } catch(e) {}
         
         res.json({ success: true, newName });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
+});
+studentRouter.post("/webinar-register", async (req, res) => {
+    try {
+        const authSession = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
+        if (!authSession?.user) return res.status(401).json({ error: "Unauthorized" });
+
+        const { bank_ref, screenshot } = req.body;
+        if (!bank_ref || !screenshot) {
+            return res.status(400).json({ error: "Bank reference and screenshot are required" });
+        }
+
+        // Validate base64 length to ensure it doesn't exceed 1.5MB (allows roughly 1MB of binary)
+        if (screenshot.length > 1.5 * 1024 * 1024) {
+            return res.status(400).json({ error: "Screenshot is too large. Max 1MB allowed." });
+        }
+
+        await db.insert(webinarRegistrations).values({
+            userId: authSession.user.id,
+            bankRefNumber: bank_ref,
+            screenshotData: screenshot
+        });
+
+        res.json({ success: true });
     } catch (err: any) {
         res.status(500).json({ error: err.message });
     }

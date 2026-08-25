@@ -12,7 +12,7 @@ async function main() {
   const topPlayers = await db.select().from(players).orderBy(desc(players.currentRating)).limit(1);
 
   if (topPlayers.length > 0) {
-    const topPlayer = topPlayers[0];
+    const topPlayer = topPlayers[0]!;
     console.log(`Setting player ${topPlayer.realName} (rating: ${topPlayer.currentRating}) as leader`);
     await db.update(players).set({ isLeader: true }).where(eq(players.id, topPlayer.id));
     console.log('Successfully set highest rating player as leader.');

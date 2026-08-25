@@ -16,8 +16,12 @@ const getCachedData = (key: string) => {
     return null;
 };
 
-const setCachedData = (key: string, data: any) => {
-    cache.set(key, { data, expiresAt: Date.now() + CACHE_TTL_MS });
+export const setCachedData = (key: string, data: any) => {
+    if (data === null) {
+        cache.delete(key);
+    } else {
+        cache.set(key, { data, expiresAt: Date.now() + CACHE_TTL_MS });
+    }
 };
 
 publicRouter.get("/canvas", async (req, res) => {

@@ -42,6 +42,8 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   // Panel toggles
   const [controlsOpen, setControlsOpen] = useState(true);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [webinarsOpen, setWebinarsOpen] = useState(false);
+  const [webinars, setWebinars] = useState<any[]>([]);
 
   const fetchTeams = () => fetchApi('/adminme/teams').then(setTeams);
 
@@ -50,7 +52,8 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       fetchTeams(),
       fetchApi('/adminme/feedbacks').then(setFeedbacks),
       fetchApi('/adminme/settings').then(s => setSettings({ advanced: s.advancedThreshold, mid: s.midThreshold, registrationOpen: s.registrationOpen })),
-      fetchApi('/adminme/cron-health').then(setCronHealth).catch(() => {})
+      fetchApi('/adminme/cron-health').then(setCronHealth).catch(() => {}),
+      fetchApi('/adminme/webinar-registrations').then(setWebinars).catch(() => {})
     ]).then(() => setLoading(false));
   }, []);
 
@@ -329,6 +332,42 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           ) : (
             <button onClick={() => setFeedbackOpen(true)} className="btn btn-primary shadow-xl rounded-full px-6 flex items-center gap-2">
               💬 Feedback <span className="badge badge-sm badge-base-100 font-bold">{feedbacks.length}</span>
+            </button>
+          )}
+        </div>
+
+        {/* Webinar Registrations Container */}
+        <div className="pointer-events-auto max-w-[90vw]">
+          {webinarsOpen ? (
+            <div className="card bg-base-100/90 shadow-2xl border border-base-300 backdrop-blur-md w-80 h-96 max-w-full flex flex-col relative">
+              <button onClick={() => setWebinarsOpen(false)} className="btn btn-xs btn-circle btn-ghost absolute top-3 right-3 z-10 text-base-content/50 hover:text-base-content">✕</button>
+              <div className="p-3 border-b border-base-200 bg-base-100/50 rounded-t-2xl shrink-0 flex items-center gap-3 pt-3 pl-4">
+                <h3 className="font-bold text-sm">Webinar Regs</h3>
+                <div className="badge badge-secondary badge-sm">{webinars.length}</div>
+              </div>
+              <div className="p-4 overflow-y-auto space-y-4 flex-1 flex flex-col">
+                {loading ? (
+                  <div className="flex justify-center items-center h-full"><span className="loading loading-spinner text-secondary"></span></div>
+                ) : webinars.length === 0 ? (
+                  <div className="text-center text-xs opacity-50 my-auto">No registrations yet.</div>
+                ) : (
+                  webinars.map((w: any) => (
+                    <div key={w.id} className="card bg-base-200 border border-base-300 shadow-sm p-3 gap-2">
+                      <div className="flex justify-between items-start">
+                        <div className="font-bold text-sm truncate pr-2">{w.userName}</div>
+                        <div className="text-[10px] opacity-60 whitespace-nowrap">{new Date(w.createdAt).toLocaleDateString()}</div>
+                      </div>
+                      <div className="text-xs opacity-80 break-all">{w.userEmail}</div>
+                      <div className="text-xs font-mono mt-1">Ref: <span className="font-bold text-primary">{w.bankRefNumber}</span></div>
+                      <a href={w.screenshotData} target="_blank" rel="noreferrer" className="btn btn-xs btn-secondary mt-2">View Screenshot</a>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setWebinarsOpen(true)} className="btn btn-secondary shadow-xl rounded-full px-6 flex items-center gap-2">
+              🎫 Webinars <span className="badge badge-sm badge-base-100 font-bold">{webinars.length}</span>
             </button>
           )}
         </div>

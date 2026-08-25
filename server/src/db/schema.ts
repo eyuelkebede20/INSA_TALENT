@@ -105,9 +105,21 @@ export const studentFeedbacks = pgTable('student_feedbacks', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const webinarRegistrations = pgTable('webinar_registrations', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id', { length: 36 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  bankRefNumber: varchar('bank_ref_number', { length: 100 }).notNull(),
+  screenshotData: text('screenshot_data').notNull(), // Base64 image
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const teamsRelations = relations(teams, ({ many }) => ({ players: many(players) }));
 export const playersRelations = relations(players, ({ one, many }) => ({
   team: one(teams, { fields: [players.teamId], references: [teams.id] }),
   dailyStats: many(playerDailyStats),
   feedbacks: many(studentFeedbacks),
+}));
+
+export const userRelations = relations(user, ({ one }) => ({
+  webinarRegistration: one(webinarRegistrations, { fields: [user.id], references: [webinarRegistrations.userId] }),
 }));
