@@ -491,8 +491,6 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           </DndContext>
         )}
       </div>
-      </div>
-
       {selectedWebinar && (
         <div className="fixed inset-0 z-[100] flex justify-center items-center bg-black/60 backdrop-blur-sm p-4">
           <div className="card w-full max-w-2xl bg-base-100 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
