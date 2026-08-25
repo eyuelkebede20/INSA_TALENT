@@ -419,7 +419,7 @@ function App() {
       <Toaster position="top-center" richColors />
       <div className="navbar bg-base-100 shadow-sm flex-none z-50 border-b border-base-300 px-2 sm:px-6">
         <div className="flex-1">
-          <Link to="/" className="text-xl font-bold tracking-tighter">INSA<span className="text-primary">TALENT</span></Link>
+          <Link to="/" className="text-xl font-bold tracking-tighter">ACA-<span className="text-primary">2026</span></Link>
         </div>
         <div className="flex-none flex items-center gap-4">
           <ul className="menu menu-horizontal px-1 font-semibold gap-2 items-center">
