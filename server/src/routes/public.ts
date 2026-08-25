@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db } from "../db";
 import { sql } from "drizzle-orm";
+import { webinarRegistrations } from "../db/schema";
 
 export const publicRouter = Router();
 
@@ -118,5 +119,29 @@ publicRouter.get("/leaderboard/teams/rating", async (req, res) => {
         res.json(teams);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+publicRouter.post("/webinar-register", async (req, res) => {
+    try {
+        const { name, email, bank_ref, screenshot } = req.body;
+        if (!name || !email || !bank_ref || !screenshot) {
+            return res.status(400).json({ error: "Name, email, bank reference and screenshot are required" });
+        }
+
+        if (screenshot.length > 1.5 * 1024 * 1024) {
+            return res.status(400).json({ error: "Screenshot is too large. Max 1MB allowed." });
+        }
+
+        await db.insert(webinarRegistrations).values({
+            name,
+            email,
+            bankRefNumber: bank_ref,
+            screenshotData: screenshot
+        });
+
+        res.json({ success: true });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
     }
 });

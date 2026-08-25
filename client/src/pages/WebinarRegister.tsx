@@ -1,16 +1,26 @@
-import { useState, useRef } from 'react';
-import { signIn, useSession, fetchApi } from '../lib/api';
+import { useState, useRef, useEffect } from 'react';
+import { useSession, fetchApi } from '../lib/api';
 import { toast } from 'sonner';
 
 export default function WebinarRegister() {
   const { data: session, isPending } = useSession();
+  
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [bankRef, setBankRef] = useState("");
   const [screenshotBase64, setScreenshotBase64] = useState("");
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-fill name and email if logged in
+  useEffect(() => {
+    if (session?.user) {
+      setName(session.user.name || "");
+      setEmail(session.user.email || "");
+    }
+  }, [session]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -35,20 +45,16 @@ export default function WebinarRegister() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bankRef) {
-      toast.error("Please provide the bank reference number");
-      return;
-    }
-    if (!screenshotBase64) {
-      toast.error("Please provide a screenshot");
+    if (!name || !email || !bankRef || !screenshotBase64) {
+      toast.error("Please fill all required fields");
       return;
     }
     
     setLoading(true);
     try {
-      await fetchApi("/students/webinar-register", {
+      await fetchApi("/webinar-register", {
         method: "POST",
-        body: JSON.stringify({ bank_ref: bankRef, screenshot: screenshotBase64 })
+        body: JSON.stringify({ name, email, bank_ref: bankRef, screenshot: screenshotBase64 })
       });
       setRegistered(true);
       toast.success("Successfully registered for the webinar!");
@@ -64,37 +70,6 @@ export default function WebinarRegister() {
       <span className="loading loading-dots loading-lg text-primary"></span>
     </div>
   );
-
-  if (!session) {
-    return (
-      <div className="flex justify-center mt-20">
-        <div className="card w-96 bg-base-100 shadow-xl border border-base-300">
-          <div className="card-body items-center text-center">
-            <h2 className="card-title text-3xl font-bold mb-4">Webinar Registration</h2>
-            <p className="text-base-content/70 mb-6">Sign in with your Google account to register for the paid webinar.</p>
-            <button 
-              onClick={async () => {
-                setGoogleLoading(true);
-                try {
-                  const res = await signIn.social({ 
-                    provider: 'google', 
-                    callbackURL: `${window.location.origin}/register` 
-                  });
-                  if (res?.error) setGoogleLoading(false);
-                } catch (e) {
-                  setGoogleLoading(false);
-                }
-              }}
-              className="btn btn-primary w-full"
-              disabled={googleLoading}
-            >
-              {googleLoading ? <span className="loading loading-spinner"></span> : "Sign in with Google"}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (registered) {
     return (
@@ -117,9 +92,19 @@ export default function WebinarRegister() {
       <div className="card w-full max-w-md bg-base-100 shadow-xl border border-base-300">
         <div className="card-body">
           <h2 className="card-title text-2xl font-bold">Register for Webinar</h2>
-          <p className="text-base-content/70 mb-4">Logged in as {session.user.name}</p>
+          <p className="text-base-content/70 mb-4">Please provide your details and payment proof.</p>
           
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="form-control w-full">
+              <label className="label"><span className="label-text font-bold">Full Name</span></label>
+              <input type="text" required value={name} onChange={e => setName(e.target.value)} className="input input-bordered w-full" placeholder="Your Name" />
+            </div>
+
+            <div className="form-control w-full">
+              <label className="label"><span className="label-text font-bold">Email Address</span></label>
+              <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="input input-bordered w-full" placeholder="you@example.com" />
+            </div>
+
             <div className="form-control w-full">
               <label className="label"><span className="label-text font-bold text-primary">Bank Reference Number</span></label>
               <input type="text" required value={bankRef} onChange={e => setBankRef(e.target.value)} className="input input-bordered input-primary w-full" placeholder="e.g. FT123456789" />

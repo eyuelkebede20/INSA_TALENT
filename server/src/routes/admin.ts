@@ -230,13 +230,12 @@ adminRouter.get("/webinar-registrations", async (req, res) => {
         const registrations = await db.select({
             id: webinarRegistrations.id,
             userId: webinarRegistrations.userId,
-            userName: user.name,
-            userEmail: user.email,
+            userName: webinarRegistrations.name,
+            userEmail: webinarRegistrations.email,
             bankRefNumber: webinarRegistrations.bankRefNumber,
             screenshotData: webinarRegistrations.screenshotData,
             createdAt: webinarRegistrations.createdAt
         }).from(webinarRegistrations)
-        .leftJoin(user, eq(webinarRegistrations.userId, user.id))
         .orderBy(sql`${webinarRegistrations.createdAt} DESC`);
         
         res.json(registrations);

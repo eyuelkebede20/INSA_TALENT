@@ -107,7 +107,9 @@ export const studentFeedbacks = pgTable('student_feedbacks', {
 
 export const webinarRegistrations = pgTable('webinar_registrations', {
   id: serial('id').primaryKey(),
-  userId: varchar('user_id', { length: 36 }).notNull().references(() => user.id, { onDelete: 'cascade' }),
+  userId: varchar('user_id', { length: 36 }).references(() => user.id, { onDelete: 'set null' }),
+  name: varchar('name', { length: 100 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
   bankRefNumber: varchar('bank_ref_number', { length: 100 }).notNull(),
   screenshotData: text('screenshot_data').notNull(), // Base64 image
   createdAt: timestamp('created_at').defaultNow().notNull(),
