@@ -14,7 +14,7 @@ export const auth = betterAuth({
             verification: schema.verification
         }
     }),
-    baseURL: process.env.BETTER_AUTH_URL || "https://insa-talent-1.onrender.com/api/auth",
+    baseURL: process.env.BETTER_AUTH_URL || "https://aca-2026.vercel.app/api/auth",
     trustedOrigins: [
         "http://localhost:5173", 
         "https://insa-aca.vercel.app", 
