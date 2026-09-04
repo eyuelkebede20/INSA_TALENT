@@ -127,8 +127,20 @@ export default function PublicCanvas() {
                                     </p>
                                   </div>
                                 </div>
-                                <div className="text-right">
+                                <div className="text-right flex items-center justify-end gap-2">
                                   <p className="text-sm font-bold text-primary">{m.rating}</p>
+                                  {m.lichess_username && (
+                                    <a 
+                                      href={`https://lichess.org/@/${m.lichess_username}`} 
+                                      target="_blank" 
+                                      rel="noreferrer" 
+                                      className="btn btn-xs btn-outline btn-accent rounded-sm h-6 min-h-6 px-1.5 transition-transform hover:scale-110" 
+                                      title={`Challenge ${m.lichess_username} on Lichess`}
+                                      onPointerDown={(e) => e.stopPropagation()}
+                                    >
+                                      ⚔️
+                                    </a>
+                                  )}
                                 </div>
                               </div>
                               ));
