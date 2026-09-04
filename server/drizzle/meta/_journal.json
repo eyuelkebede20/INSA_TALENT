@@ -50,6 +50,13 @@
       "when": 1787634100102,
       "tag": "0006_dry_white_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788546580578,
+      "tag": "0007_parallel_living_mummy",
+      "breakpoints": true
     }
   ]
 }

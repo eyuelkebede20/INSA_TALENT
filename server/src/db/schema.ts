@@ -69,7 +69,7 @@ export const teams = pgTable('teams', {
 
 export const players = pgTable('players', {
   id: uuid('id').defaultRandom().primaryKey(),
-  googleId: varchar('google_id', { length: 255 }).unique().notNull(),
+  googleId: varchar('google_id', { length: 255 }).unique(),
   email: varchar('email', { length: 255 }).unique().notNull(),
   realName: varchar('real_name', { length: 100 }).notNull(),
   lichessUsername: varchar('lichess_username', { length: 100 }).unique(),

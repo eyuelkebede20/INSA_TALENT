@@ -109,8 +109,8 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const sourceTeam = newTeams.find((t: any) => t.id === sourceTeamId);
     const targetTeam = newTeams.find((t: any) => t.id === targetTeamId);
     
-    sourceTeam.members = sourceTeam.members?.filter((m: any) => m) || [];
-    targetTeam.members = targetTeam.members?.filter((m: any) => m) || [];
+    sourceTeam.members = sourceTeam.members?.filter((m: any) => m && m.id) || [];
+    targetTeam.members = targetTeam.members?.filter((m: any) => m && m.id) || [];
 
     const memberIndex = sourceTeam.members.findIndex((m: any) => m.id === playerId);
     const [movedMember] = sourceTeam.members.splice(memberIndex, 1);
@@ -276,7 +276,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
                 <div className="flex justify-between text-sm font-bold px-1 opacity-80 bg-base-200 p-2 rounded-lg">
                   <span>Teams: <span className="text-primary">{teams.length}</span></span>
-                  <span>Students: <span className="text-secondary">{teams.reduce((acc, t) => acc + (t.members?.filter((m:any) => m).length || 0), 0)}</span></span>
+                  <span>Students: <span className="text-secondary">{teams.reduce((acc, t) => acc + (t.members?.filter((m:any) => m && m.id).length || 0), 0)}</span></span>
                 </div>
                 
                 <div className="flex flex-col gap-2">
@@ -446,12 +446,12 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                <TransformComponent wrapperStyle={{ width: '100%', height: '100%' }}>
                  <div className={`p-20 w-[5000px] h-[5000px] flex flex-wrap content-start gap-10 ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}>
                         {filteredTeams.map((t: any) => {
-                          const validMembers = (t.members?.filter((m: any) => m) || []).sort((a: any, b: any) => {
+                          const validMembers = (t.members?.filter((m: any) => m && m.id) || []).sort((a: any, b: any) => {
                             const tierWeight: any = { ADVANCED: 3, MID: 2, BEGINNER: 1 };
                             if (tierWeight[a.tier] !== tierWeight[b.tier]) {
-                              return tierWeight[b.tier] - tierWeight[a.tier];
+                              return (tierWeight[b.tier] || 0) - (tierWeight[a.tier] || 0);
                             }
-                            return b.rating - a.rating;
+                            return (b.rating || 0) - (a.rating || 0);
                           });
 
                           return (
