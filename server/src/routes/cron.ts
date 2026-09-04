@@ -243,7 +243,7 @@ export async function runLichessSync() {
   }
 }
 
-cronRouter.post("/sync-lichess", async (req, res) => {
+cronRouter.all("/sync-lichess", async (req, res) => {
   // Fail closed: if CRON_SECRET isn't configured, refuse all requests
   // instead of silently allowing unauthenticated access.
   if (!process.env.CRON_SECRET) {
