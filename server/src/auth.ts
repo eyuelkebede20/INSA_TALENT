@@ -14,8 +14,14 @@ export const auth = betterAuth({
             verification: schema.verification
         }
     }),
-    baseURL: process.env.BETTER_AUTH_URL || "https://insa-aca.vercel.app/api/auth",
-    trustedOrigins: ["http://localhost:5173", "https://insa-aca.vercel.app", "https://www.insa-aca.vercel.app", process.env.FRONTEND_URL || "https://insa-aca.vercel.app", "https://insa-talent-1.onrender.com", process.env.VITE_API_BASE_URL?.replace('/api', '') || "http://localhost:5173"],
+    baseURL: process.env.BETTER_AUTH_URL || "https://insa-talent-1.onrender.com/api/auth",
+    trustedOrigins: [
+        "http://localhost:5173", 
+        "https://insa-aca.vercel.app", 
+        "https://aca-2026.vercel.app",
+        process.env.FRONTEND_URL || "https://aca-2026.vercel.app", 
+        "https://insa-talent-1.onrender.com"
+    ],
     secret: process.env.BETTER_AUTH_SECRET || process.env.JWT_SECRET || "fallback_secret_for_dev",
     socialProviders: {
         google: {
@@ -27,7 +33,7 @@ export const auth = betterAuth({
         defaultCookieAttributes: {
             sameSite: "none",
             secure: true,
-            domain: process.env.COOKIE_DOMAIN || "insa-aca.vercel.app"
+            domain: process.env.COOKIE_DOMAIN || "aca-2026.vercel.app"
         }
     }
 });
