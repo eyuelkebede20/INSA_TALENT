@@ -175,12 +175,33 @@ studentRouter.post("/complete-profile", async (req, res) => {
 studentRouter.get("/me", async (req, res) => {
     try {
         const user = (req as any).user;
-        const playerRes = await db.execute(sql`
+        let playerRes = await db.execute(sql`
             SELECT p.*, t.team_number, t.is_locked 
             FROM players p 
             LEFT JOIN teams t ON p.team_id = t.id 
             WHERE p.google_id = ${user.id}
         `);
+
+        // If not found by google_id, try to auto-link by email (for imported CSV users)
+        if (playerRes.length === 0 && user.email) {
+            const emailRes = await db.execute(sql`
+                SELECT p.*, t.team_number, t.is_locked 
+                FROM players p 
+                LEFT JOIN teams t ON p.team_id = t.id 
+                WHERE p.email = ${user.email}
+            `);
+
+            if (emailRes.length > 0) {
+                await db.execute(sql`
+                    UPDATE players 
+                    SET google_id = ${user.id} 
+                    WHERE id = ${emailRes[0].id}
+                `);
+                playerRes = emailRes;
+                playerRes[0].google_id = user.id;
+            }
+        }
+
         res.json({ profile: playerRes[0] || null });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
